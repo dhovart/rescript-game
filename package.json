@@ -1,0 +1,29 @@
+{
+  "name": "shooter",
+  "version": "0.0.1",
+  "scripts": {
+    "re:build": "bsb -make-world",
+    "re:clean": "bsb -clean-world",
+    "re:start": "bsb -make-world -w",
+    "parcel:bundle": "parcel build src/index.html --public-url ./",
+    "parcel:dev": "parcel src/index.html --open",
+    "start": "yarn build && yarn concurrently \"yarn re:start\" \"yarn parcel:dev\"",
+    "build": "yarn re:clean && yarn re:build && yarn parcel:bundle"
+  },
+  "keywords": [
+    "rescript",
+    "game"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "bs-platform": "*",
+    "concurrently": "^5.3.0",
+    "parcel-bundler": "^1.12.4"
+  },
+  "dependencies": {
+    "bs-pixi": "^0.1.13",
+    "bs-webapi": "^0.19.1",
+    "global": "^4.4.0"
+  }
+}
