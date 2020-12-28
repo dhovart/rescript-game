@@ -1,4 +1,4 @@
-open PIXI;
+open PIXI
 
 let app = Application.create(~options=Application.createApplicationOptions(
   ~backgroundColor=int_of_string("0x1099bb"),
@@ -31,15 +31,11 @@ app
 // Create a new texture
 let texture = Texture.from(~source=#String("https://pixijs.io/examples/examples/assets/bunny.png"), ())
 
-// Create a 5x5 grid of bunnies
-Belt.Array.range(0, 24)
--> Belt.Array.forEach(i => {
-  let bunny = Sprite.create(texture)
-  bunny -> Sprite.setAnchor(ObservablePoint.create(~x=0.5, ~y=0.5, ~cb=() => (), ()))
-  bunny -> Sprite.setX(float_of_int((mod(i, 5)) * 40))
-  bunny -> Sprite.setY(floor(float_of_int(i) /. 5.) *. 40.)
-  container -> Container.addChild(bunny) -> ignore
-});
+let bunny = Sprite.create(texture)
+bunny -> Sprite.setAnchor(ObservablePoint.create(~x=0.5, ~y=0.5, ~cb=() => (), ()))
+bunny -> Sprite.setX(texture -> Texture.getWidth /. 2.)
+bunny -> Sprite.setY(texture -> Texture.getHeight /. 2.)
+container -> Container.addChild(bunny) -> ignore
 
 // Center bunny sprite in local container coordinates
 container -> Container.setPivot(ObservablePoint.create(
@@ -48,16 +44,65 @@ container -> Container.setPivot(ObservablePoint.create(
     ~cb=() => (),
 ()))
 
-let screen = app -> Application.getScreen
+type vec2 = (float, float)
+type direction = UP | DOWN | LEFT | RIGHT
+type agent = {
+  mutable acceleration: vec2,
+  mutable position: vec2
+}
+let multiply = ((x, y), z) =>  (x *. z, y *. z)
+let length = ((x, y)) =>  Js.Math.sqrt(x *. x +. y *. y)
+let normalize = (vec2) => {
+  let (x, y) = vec2
+  let length = length(vec2)
+  (x /. length, y /. length)
+}
 
-// Listen for animate update
-app
--> Application.getTicker
--> Ticker.add(delta => {
-  // rotate the container!
-  // use delta to create frame-independent transform
-  container -> Container.setRotation(container -> Container.getRotation -. 0.01);
-  container -> Container.setX(screen -> Rectangle.getWidth /. 2.);
-  container -> Container.setY(screen -> Rectangle.getHeight /. 2.);
-}, ())
-->ignore
+let bunny = { position: (0., 0.), acceleration: (0., 0.) }
+let accelIncrease = 0.05
+let maxSpeed = 3.
+
+let direction = Rx.merge([
+  Rx.fromEvent(~target=Webapi.Dom.document, ~eventName="keydown")
+  |> Rx.Operators.mapn(e =>
+    switch(e -> Webapi.Dom.KeyboardEvent.key) {
+    | "ArrowUp" => Some(UP)
+    | "ArrowDown" => Some(DOWN)
+    | "ArrowLeft" => Some(LEFT)
+    | "ArrowRight" => Some(RIGHT)
+    | _ => None
+    }
+  ),
+  Rx.fromEvent(~target=Webapi.Dom.document, ~eventName="keyup")
+  |> Rx.Operators.mapn(e => None)
+])
+|> Rx.Operators.distinctUntilChanged()
+
+let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())
+
+let screen = app -> Application.getScreen
+let update = ((_, direction)) => {
+  let (px, py) = bunny.position
+  let (ax, ay) = bunny.acceleration
+
+  let newAcceleration = switch(direction) {
+    | Some(UP) => (ax, ay -. accelIncrease)
+    | Some(DOWN) => (ax, ay +. accelIncrease)
+    | Some(LEFT) => (ax -. accelIncrease, ay)
+    | Some(RIGHT) => (ax +. accelIncrease, ay)
+    | _ => (ax,ay)
+  }
+
+  bunny.acceleration = length(newAcceleration) > maxSpeed ?
+    multiply(normalize(newAcceleration), maxSpeed) :
+    newAcceleration
+
+  container -> Container.setX(screen -> Rectangle.getWidth /. 2. +. px)
+  container -> Container.setY(screen -> Rectangle.getHeight /. 2. +. py)
+  container -> Container.setRotation(Js.Math._PI /. 2. +. Js.Math.atan2(~y=ay, ~x=ax, ()))
+
+  bunny.position = (px +. ax, py +. ay)
+}
+
+let game = Rx.combineLatest2(ticker, direction)
+|> Rx.Observable.subscribe(~next=update)

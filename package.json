@@ -22,8 +22,11 @@
     "parcel-bundler": "^1.12.4"
   },
   "dependencies": {
+    "@ambientlight/bs-rx": "^0.2.3",
+    "bs-fetch": "^0.6.2",
     "bs-pixi": "^0.1.13",
     "bs-webapi": "^0.19.1",
-    "global": "^4.4.0"
+    "global": "^4.4.0",
+    "reason-promise": "^1.1.2"
   }
 }

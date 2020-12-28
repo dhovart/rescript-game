@@ -12,6 +12,9 @@
   },
   "suffix": ".bs.js",
   "bs-dependencies": [
+    "@ambientlight/bs-rx",
+    "reason-promise",
+    "bs-fetch",
     "bs-webapi",
     "bs-pixi"
   ],
