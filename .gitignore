@@ -5,3 +5,4 @@
 .merlin
 .cache
 dist
+*.bs.js
