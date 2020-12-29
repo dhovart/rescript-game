@@ -3,14 +3,16 @@ type t = {
   mutable position: Vec2.t,
   maxSpeed: float,
   accelIncrease: float,
+  name: string,
 }
 
 let make = (
+  ~name: string,
   ~acceleration=(0.,0.),
   ~position=(0.,0.),
   ~maxSpeed=6.,
   ~accelIncrease=0.3,
-()) => { acceleration, position, maxSpeed, accelIncrease }
+()) => { name, acceleration, position, maxSpeed, accelIncrease }
 
 let update = (entity: t) => {
   entity.acceleration =

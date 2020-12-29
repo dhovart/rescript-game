@@ -12,6 +12,6 @@ let getPlayerDirection = Rx.merge([
     }
   ),
   Rx.fromEvent(~target=Webapi.Dom.document, ~eventName="keyup")
-  |> Rx.Operators.mapn(e => None)
+  |> Rx.Operators.mapn(_ => None)
 ])
 |> Rx.Operators.distinctUntilChanged()

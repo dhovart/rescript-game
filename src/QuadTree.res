@@ -37,7 +37,7 @@ let createNode = (bbox: BBox.t, quadrant: BBox.quadrant, entity: Entity.t) => {
   make(~bbox=subquadrant, ~entity=Some(entity), ())
 }
 
-let rec insert = (tree: t, entity: Entity.t) =>
+let rec insert = (tree: t, entity: Entity.t) => {
   switch (tree.entity) {
   | Some(_) =>
     let quadrant = BBox.quadrantFromPoint(tree.bbox, entity.position)
@@ -49,3 +49,55 @@ let rec insert = (tree: t, entity: Entity.t) =>
     }
   | None => {...tree, entity: Some(entity)}
   }
+}
+
+let rec query = (tree, bbox: BBox.t, ~found=[], ()) => {
+  if (!BBox.intersects(bbox, tree.bbox)) {
+    found
+  } else {
+    let fromNE = switch(tree.ne) {
+    | Some(ne) => query(ne, bbox, ~found=found, ())
+    | None => []
+    }
+    let fromNW = switch(tree.nw) {
+    | Some(nw) => query(nw, bbox, ~found=found, ())
+    | None => []
+    }
+    let fromSE = switch(tree.se) {
+    | Some(se) => query(se, bbox, ~found=found, ())
+    | None => []
+    }
+    let fromSW = switch(tree.sw) {
+    | Some(sw) => query(sw, bbox, ~found=found, ())
+    | None => []
+    }
+    let fromCurrentNode = switch(tree.entity) {
+    | Some(entity) => [entity]
+    | None => []
+    }
+    Belt.Array.concatMany([found, fromCurrentNode, fromNE, fromNW, fromSE, fromSW])
+  }
+}
+
+let rec draw = (tree, graphics): PIXI.Graphics.t => {
+    let graphics = switch(tree.ne) {
+    | Some(ne) => draw(ne, graphics)
+    | None => graphics
+    }
+    let graphics = switch(tree.nw) {
+    | Some(nw) => draw(nw, graphics)
+    | None => graphics
+    }
+    let graphics = switch(tree.se) {
+    | Some(se) => draw(se, graphics)
+    | None => graphics
+    }
+    let graphics = switch(tree.sw) {
+    | Some(sw) => draw(sw, graphics)
+    | None => graphics
+    }
+
+    let { topLeft, width, height } = tree.bbox
+    let (x, y) = topLeft
+    graphics-> PIXI.Graphics.drawRect(~x=x, ~y=y, ~width=width, ~height=height)
+}
