@@ -10,7 +10,7 @@ let findMax = xs => xs->reduce(xs[0], Js.Math.max_float)
 let filterByIndex = (xs, filter) =>
   xs->reduceWithIndex([], (acc, x, i) => filter(i) ? acc : acc->concat([x]))
 
-let getBox = polygon => {
+let getBBox = polygon => {
   let {points} = polygon
   let xs = points->filterByIndex(i => mod(i, 2) != 0)
   let ys = points->filterByIndex(i => mod(i, 2) == 0)
@@ -21,5 +21,5 @@ let getBox = polygon => {
   let top = findMin(ys)
   let bottom = findMax(ys)
 
-  [left, top, right, bottom]
+  BBox.make(Vec2.make(left, top), right -. left, bottom -. top)
 }

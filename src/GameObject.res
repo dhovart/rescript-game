@@ -39,7 +39,7 @@ let make = (name, textureUrl, ~position=Vec2.make(0., 0.), ~controllable=false, 
 }
 
 let appendDebugSprite = (gameObject: t, renderer: PIXI.Renderer.t) => {
-  let [left, top, right, bottom] = Polygon.getBox(gameObject.polygon)
+  let bbox = gameObject.polygon->Polygon.getBBox
   let debugGraphics = {
     open PIXI.Graphics
     create()
@@ -51,7 +51,7 @@ let appendDebugSprite = (gameObject: t, renderer: PIXI.Renderer.t) => {
   }
 
   let brt = PIXI.BaseRenderTexture.create(
-    ~options=PIXI.BaseRenderTexture.createOptions(~width=right -. left, ~height=bottom -. top, ()),
+    ~options=PIXI.BaseRenderTexture.createOptions(~width=bbox.width, ~height=bbox.height, ()),
     (),
   )
   let texture = PIXI.RenderTexture.create(~baseRenderTexture=brt, ())

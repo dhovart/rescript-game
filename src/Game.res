@@ -1,4 +1,5 @@
 open PIXI
+open Belt.Array
 
 type t = {
   app: Application.t,
@@ -40,8 +41,7 @@ let getRenderer = game => game.app->Application.getRenderer
 let update = (game: t, (t, input)) => {
   let {x: width, y: height} = getScreenDimensions(game.app)
   game.tree = QuadTree.make(~bbox=BBox.make(Vec2.make(0., 0.), width, height), ())
-
-  Belt.Array.forEach(game.objects, obj => {
+  game.objects->forEach(obj => {
     open GameObject
     obj->update(input)->render->ignore
     game.tree = game.tree->QuadTree.insert(obj.entity)
@@ -87,7 +87,7 @@ let init = game => {
 }
 
 let appendObject = (game, gameObject) => {
-  game.objects = Belt.Array.concat(game.objects, [gameObject])
+  game.objects = game.objects->concat([gameObject])
 
   if game.debug {
     gameObject->GameObject.appendDebugSprite(getRenderer(game))
