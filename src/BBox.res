@@ -10,7 +10,7 @@ type quadrant =
   | SE
   | SW
 
-let make = (topLeft, width, height) => {topLeft: topLeft, width: width, height: height}
+let make = (topLeft, width, height) => {topLeft, width, height}
 
 let getSubquadrantBbox = (bbox: t, quadrant) => {
   let halfWidth = bbox.width /. 2.0
@@ -52,6 +52,9 @@ let intersects = (bbox, other) => {
   let (x, y) = bbox.topLeft
   let (ox, oy) = other.topLeft
   !(
-    ox > x +. bbox.width || ox +. other.width < x || oy > y +. bbox.height || oy +. other.height < y
+    ox > x +. bbox.width ||
+    ox +. other.width < x ||
+    oy > y +. bbox.height ||
+    oy +. other.height < y
   )
 }

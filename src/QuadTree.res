@@ -8,8 +8,8 @@ type rec t = {
 }
 
 let make = (~bbox: BBox.t, ~entity=None, ()) => {
-  entity: entity,
-  bbox: bbox,
+  entity,
+  bbox,
   ne: None,
   nw: None,
   se: None,

@@ -14,11 +14,11 @@ let make = (
   ~acceleration=0.3,
   (),
 ) => {
-  name: name,
-  velocity: velocity,
-  position: position,
-  maxSpeed: maxSpeed,
-  acceleration: acceleration,
+  name,
+  velocity,
+  position,
+  maxSpeed,
+  acceleration,
 }
 
 let update = (entity: t) => {

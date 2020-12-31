@@ -28,11 +28,13 @@ let make = (name, textureUrl, ~position=(0., 0.), ~controllable=false, ~polygon=
     Polygon.make([0., 0., texWidth, 0., texWidth, texHeight, 0., texHeight])
   }
 
+  let entity = Entity.make(~name, ~position, ())
+
   {
-    spriteContainer: spriteContainer,
-    entity: Entity.make(~name, ~position, ()),
-    controllable: controllable,
-    polygon: polygon,
+    spriteContainer,
+    entity,
+    controllable,
+    polygon,
   }
 }
 

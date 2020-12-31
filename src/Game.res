@@ -25,11 +25,11 @@ let make = () => {
   let (width, height) = getScreenDimensions(app)
   let tree = QuadTree.make(~bbox=BBox.make((0., 0.), width, height), ())
   {
-    app: app,
+    app,
     objects: [],
     debug: true, // FIXME load from config or env var
     debugGraphics: PIXI.Graphics.create(),
-    tree: tree,
+    tree,
   }
 }
 
