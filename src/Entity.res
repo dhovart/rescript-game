@@ -22,11 +22,12 @@ let make = (
 }
 
 let update = (entity: t) => {
-  entity.velocity = Vec2.length(entity.velocity) > entity.maxSpeed
-    ? Vec2.multiply(Vec2.normalize(entity.velocity), entity.maxSpeed)
-    : entity.velocity
+  open Vec2
+  if (entity.velocity->length > entity.maxSpeed) {
+    entity.velocity->normalize->multiply(entity.maxSpeed)->ignore
+  }
 
-  entity.velocity = Vec2.multiply(entity.velocity, 0.98) // friction
+  entity.velocity = entity.velocity->multiply(0.98)
 
   let (vx, vy) = entity.velocity
   let (px, py) = entity.position

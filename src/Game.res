@@ -90,7 +90,7 @@ let appendObject = (game: t, gameObject: GameObject.t) => {
   game.objects = Belt.Array.concat(game.objects, [gameObject])
 
   if game.debug {
-    GameObject.appendDebugSprite(gameObject, getRenderer(game))
+    gameObject->GameObject.appendDebugSprite(getRenderer(game))
   }
 
   game.app->Application.getStage->Container.addChild(gameObject.spriteContainer)->ignore
