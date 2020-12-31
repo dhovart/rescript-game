@@ -1,23 +1,25 @@
+open Belt.Array
+
 type t = {points: array<float>}
 
 let make = points => {points: points}
 
-let findSmallest = xs => Belt.Array.reduce(xs, xs[0], Js.Math.min_float)
-let findGreatest = xs => Belt.Array.reduce(xs, xs[0], Js.Math.max_float)
+let findMin = xs => xs->reduce(xs[0], Js.Math.min_float)
+let findMax = xs => xs->reduce(xs[0], Js.Math.max_float)
 
-let pickByIndex = (xs, filter) =>
-  Belt.Array.reduceWithIndex(xs, [], (acc, x, i) => filter(i) ? acc : Belt.Array.concat(acc, [x]))
+let filterByIndex = (xs, filter) =>
+  xs->reduceWithIndex([], (acc, x, i) => filter(i) ? acc : acc->concat([x]))
 
 let getBox = polygon => {
   let {points} = polygon
-  let xs = pickByIndex(points, i => mod(i, 2) != 0)
-  let ys = pickByIndex(points, i => mod(i, 2) == 0)
+  let xs = points->filterByIndex(i => mod(i, 2) != 0)
+  let ys = points->filterByIndex(i => mod(i, 2) == 0)
 
-  let left = findSmallest(xs)
-  let right = findGreatest(xs)
+  let left = findMin(xs)
+  let right = findMax(xs)
 
-  let top = findSmallest(ys)
-  let bottom = findGreatest(ys)
+  let top = findMin(ys)
+  let bottom = findMax(ys)
 
   [left, top, right, bottom]
 }
