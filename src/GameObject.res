@@ -74,26 +74,26 @@ let appendDebugSprite = (gameObject: t, renderer: PIXI.Renderer.t) => {
 
 let render = (gameObject: t) => {
     let (px, py) = gameObject.entity.position
-    let (ax, ay) = gameObject.entity.acceleration
+    let (vx, vy) = gameObject.entity.velocity
     {
         open PIXI.Container
         gameObject.spriteContainer -> setX(px)
         gameObject.spriteContainer -> setY(py)
-        gameObject.spriteContainer -> setRotation(Js.Math._PI /. 2. +. Js.Math.atan2(~y=ay, ~x=ax, ()))
+        gameObject.spriteContainer -> setRotation(Js.Math._PI /. 2. +. Js.Math.atan2(~y=vy, ~x=vx, ()))
     }
 }
 
 let receiveInput = (gameObject: t, direction: option<Input.direction>) => {
     let { entity } = gameObject 
-    let (ax, ay) = entity.acceleration
-    let newAcceleration = switch(direction) {
-    | Some(UP) => (ax, ay -. entity.accelIncrease)
-    | Some(DOWN) => (ax, ay +. entity.accelIncrease)
-    | Some(LEFT) => (ax -. entity.accelIncrease, ay)
-    | Some(RIGHT) => (ax +. entity.accelIncrease, ay)
-    | _ => (ax,ay)
+    let (vx, vy) = entity.velocity
+    let newVelocity = switch(direction) {
+    | Some(UP) => (vx, vy -. entity.acceleration)
+    | Some(DOWN) => (vx, vy +. entity.acceleration)
+    | Some(LEFT) => (vx -. entity.acceleration, vy)
+    | Some(RIGHT) => (vx +. entity.acceleration, vy)
+    | _ => (vx,vy)
     }
-    entity.acceleration = newAcceleration
+    entity.velocity = newVelocity
 }
 
 let update = (gameObject: t, input: option<Input.direction>) => {

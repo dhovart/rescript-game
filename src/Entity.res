@@ -1,28 +1,28 @@
 type t = {
-  mutable acceleration: Vec2.t,
+  mutable velocity: Vec2.t,
   mutable position: Vec2.t,
   maxSpeed: float,
-  accelIncrease: float,
+  acceleration: float,
   name: string,
 }
 
 let make = (
   ~name: string,
-  ~acceleration=(0.,0.),
+  ~velocity=(0.,0.),
   ~position=(0.,0.),
   ~maxSpeed=6.,
-  ~accelIncrease=0.3,
-()) => { name, acceleration, position, maxSpeed, accelIncrease }
+  ~acceleration=0.3,
+()) => { name, velocity, position, maxSpeed, acceleration }
 
 let update = (entity: t) => {
-  entity.acceleration =
-    Vec2.length(entity.acceleration) > entity.maxSpeed ?
-    Vec2.multiply(Vec2.normalize(entity.acceleration), entity.maxSpeed) :
-    entity.acceleration
+  entity.velocity =
+    Vec2.length(entity.velocity) > entity.maxSpeed ?
+    Vec2.multiply(Vec2.normalize(entity.velocity), entity.maxSpeed) :
+    entity.velocity
 
-  entity.acceleration = Vec2.multiply(entity.acceleration, 0.98) // friction
+  entity.velocity = Vec2.multiply(entity.velocity, 0.98) // friction
 
-  let (ax, ay) = entity.acceleration
+  let (vx, vy) = entity.velocity
   let (px, py) = entity.position
-  entity.position = (px +. ax, py +. ay)
+  entity.position = (px +. vx, py +. vy)
 }
