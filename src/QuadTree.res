@@ -7,9 +7,9 @@ type rec t = {
   sw: option<t>,
 }
 
-let make =(~bbox: BBox.t, ~entity=None, ()) => {
-  entity,
-  bbox,
+let make = (~bbox: BBox.t, ~entity=None, ()) => {
+  entity: entity,
+  bbox: bbox,
   ne: None,
   nw: None,
   se: None,
@@ -17,7 +17,7 @@ let make =(~bbox: BBox.t, ~entity=None, ()) => {
 }
 
 let getNode = (tree, quadrant: BBox.quadrant) =>
-  switch (quadrant) {
+  switch quadrant {
   | SE => tree.se
   | NE => tree.ne
   | SW => tree.sw
@@ -25,7 +25,7 @@ let getNode = (tree, quadrant: BBox.quadrant) =>
   }
 
 let setNode = (tree: t, where: BBox.quadrant, node: t) =>
-  switch (where) {
+  switch where {
   | SE => {...tree, se: Some(node)}
   | NE => {...tree, ne: Some(node)}
   | SW => {...tree, sw: Some(node)}
@@ -38,12 +38,12 @@ let createNode = (bbox: BBox.t, quadrant: BBox.quadrant, entity: Entity.t) => {
 }
 
 let rec insert = (tree: t, entity: Entity.t) => {
-  switch (tree.entity) {
+  switch tree.entity {
   | Some(_) =>
     let quadrant = BBox.quadrantFromPoint(tree.bbox, entity.position)
     let child = getNode(tree, quadrant)
 
-    switch (child) {
+    switch child {
     | Some(node) => setNode(tree, quadrant, insert(node, entity))
     | None => setNode(tree, quadrant, createNode(tree.bbox, quadrant, entity))
     }
@@ -52,26 +52,26 @@ let rec insert = (tree: t, entity: Entity.t) => {
 }
 
 let rec query = (tree, bbox: BBox.t, ~found=[], ()) => {
-  if (!BBox.intersects(bbox, tree.bbox)) {
+  if !BBox.intersects(bbox, tree.bbox) {
     found
   } else {
-    let fromNE = switch(tree.ne) {
-    | Some(ne) => query(ne, bbox, ~found=found, ())
+    let fromNE = switch tree.ne {
+    | Some(ne) => query(ne, bbox, ~found, ())
     | None => []
     }
-    let fromNW = switch(tree.nw) {
-    | Some(nw) => query(nw, bbox, ~found=found, ())
+    let fromNW = switch tree.nw {
+    | Some(nw) => query(nw, bbox, ~found, ())
     | None => []
     }
-    let fromSE = switch(tree.se) {
-    | Some(se) => query(se, bbox, ~found=found, ())
+    let fromSE = switch tree.se {
+    | Some(se) => query(se, bbox, ~found, ())
     | None => []
     }
-    let fromSW = switch(tree.sw) {
-    | Some(sw) => query(sw, bbox, ~found=found, ())
+    let fromSW = switch tree.sw {
+    | Some(sw) => query(sw, bbox, ~found, ())
     | None => []
     }
-    let fromCurrentNode = switch(tree.entity) {
+    let fromCurrentNode = switch tree.entity {
     | Some(entity) => [entity]
     | None => []
     }
@@ -80,24 +80,24 @@ let rec query = (tree, bbox: BBox.t, ~found=[], ()) => {
 }
 
 let rec draw = (tree, graphics): PIXI.Graphics.t => {
-    let graphics = switch(tree.ne) {
-    | Some(ne) => draw(ne, graphics)
-    | None => graphics
-    }
-    let graphics = switch(tree.nw) {
-    | Some(nw) => draw(nw, graphics)
-    | None => graphics
-    }
-    let graphics = switch(tree.se) {
-    | Some(se) => draw(se, graphics)
-    | None => graphics
-    }
-    let graphics = switch(tree.sw) {
-    | Some(sw) => draw(sw, graphics)
-    | None => graphics
-    }
+  let graphics = switch tree.ne {
+  | Some(ne) => draw(ne, graphics)
+  | None => graphics
+  }
+  let graphics = switch tree.nw {
+  | Some(nw) => draw(nw, graphics)
+  | None => graphics
+  }
+  let graphics = switch tree.se {
+  | Some(se) => draw(se, graphics)
+  | None => graphics
+  }
+  let graphics = switch tree.sw {
+  | Some(sw) => draw(sw, graphics)
+  | None => graphics
+  }
 
-    let { topLeft, width, height } = tree.bbox
-    let (x, y) = topLeft
-    graphics-> PIXI.Graphics.drawRect(~x=x, ~y=y, ~width=width, ~height=height)
+  let {topLeft, width, height} = tree.bbox
+  let (x, y) = topLeft
+  graphics->PIXI.Graphics.drawRect(~x, ~y, ~width, ~height)
 }

@@ -13,8 +13,6 @@ let bunny = GameObject.make(
   ()
 )
 
-
 Belt.Array.forEach(bunnies, Game.appendObject(app))
-Game.appendObject(app, bunny)
-
-Game.init(app)
+app -> Game.appendObject(bunny)
+app -> Game.init
