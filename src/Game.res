@@ -8,7 +8,7 @@ type t = {
   mutable tree: QuadTree.t,
 }
 
-let getScreenDimensions = (app: Application.t) => {
+let getScreenDimensions = app => {
   let screen = app->Application.getScreen
   (screen->Rectangle.getWidth, screen->Rectangle.getHeight)
 }
@@ -33,7 +33,7 @@ let make = () => {
   }
 }
 
-let getScreenCenter = (game: t) => Vec2.divide(getScreenDimensions(game.app), 2.)
+let getScreenCenter = game => Vec2.divide(getScreenDimensions(game.app), 2.)
 
 let getRenderer = game => game.app->Application.getRenderer
 
@@ -58,7 +58,7 @@ let update = (game: t, (t, input)) => {
   }
 }
 
-let init = (game: t) => {
+let init = game => {
   game.app->Application.setResizeTo(#Window(Webapi.Dom.window))
 
   game.app
@@ -86,7 +86,7 @@ let init = (game: t) => {
   |> ignore
 }
 
-let appendObject = (game: t, gameObject: GameObject.t) => {
+let appendObject = (game, gameObject) => {
   game.objects = Belt.Array.concat(game.objects, [gameObject])
 
   if game.debug {

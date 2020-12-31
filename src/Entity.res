@@ -21,7 +21,7 @@ let make = (
   acceleration,
 }
 
-let update = (entity: t) => {
+let update = entity => {
   open Vec2
   if (entity.velocity->length > entity.maxSpeed) {
     entity.velocity->normalize->multiply(entity.maxSpeed)->ignore

@@ -78,7 +78,7 @@ let render = (gameObject: t) => {
   gameObject
 }
 
-let receiveInput = (gameObject: t, direction: option<Input.direction>) => {
+let receiveInput = (gameObject, direction: option<Input.direction>) => {
   let {entity} = gameObject
   let (vx, vy) = entity.velocity
   let newVelocity = switch direction {

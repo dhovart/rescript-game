@@ -1,3 +1,5 @@
+open BBox
+
 type rec t = {
   entity: option<Entity.t>,
   bbox: BBox.t,
@@ -16,7 +18,7 @@ let make = (~bbox: BBox.t, ~entity=None, ()) => {
   sw: None,
 }
 
-let getNode = (tree, quadrant: BBox.quadrant) =>
+let getNode = (tree, quadrant) =>
   switch quadrant {
   | SE => tree.se
   | NE => tree.ne
@@ -24,7 +26,7 @@ let getNode = (tree, quadrant: BBox.quadrant) =>
   | NW => tree.nw
   }
 
-let setNode = (tree: t, where: BBox.quadrant, node: t) =>
+let setNode = (tree, where, node) =>
   switch where {
   | SE => {...tree, se: Some(node)}
   | NE => {...tree, ne: Some(node)}
@@ -32,15 +34,15 @@ let setNode = (tree: t, where: BBox.quadrant, node: t) =>
   | NW => {...tree, nw: Some(node)}
   }
 
-let createNode = (bbox: BBox.t, quadrant: BBox.quadrant, entity: Entity.t) => {
-  let subquadrant = BBox.getSubquadrantBbox(bbox, quadrant)
+let createNode = (bbox, quadrant, entity) => {
+  let subquadrant = bbox->getSubquadrantBbox(quadrant)
   make(~bbox=subquadrant, ~entity=Some(entity), ())
 }
 
 let rec insert = (tree: t, entity: Entity.t) => {
   switch tree.entity {
   | Some(_) =>
-    let quadrant = BBox.quadrantFromPoint(tree.bbox, entity.position)
+    let quadrant = tree.bbox->quadrantFromPoint(entity.position)
     let child = getNode(tree, quadrant)
 
     switch child {
@@ -51,8 +53,8 @@ let rec insert = (tree: t, entity: Entity.t) => {
   }
 }
 
-let rec query = (tree, bbox: BBox.t, ~found=[], ()) => {
-  if !BBox.intersects(bbox, tree.bbox) {
+let rec query = (tree, bbox, ~found=[], ()) => {
+  if !(bbox->intersects(tree.bbox)) {
     found
   } else {
     let fromNE = switch tree.ne {
@@ -79,7 +81,7 @@ let rec query = (tree, bbox: BBox.t, ~found=[], ()) => {
   }
 }
 
-let rec draw = (tree, graphics): PIXI.Graphics.t => {
+let rec draw = (tree, graphics) => {
   let graphics = switch tree.ne {
   | Some(ne) => draw(ne, graphics)
   | None => graphics
