@@ -43,7 +43,8 @@ let update = (game: t, (t, input)) => {
   game.tree = QuadTree.make(~bbox=BBox.make((0., 0.), width, height), ())
 
   Belt.Array.forEach(game.objects, obj => {
-    obj->GameObject.update(input)->GameObject.render->ignore
+    open GameObject
+    obj->update(input)->render->ignore
     game.tree = game.tree->QuadTree.insert(obj.entity)
   })
 
