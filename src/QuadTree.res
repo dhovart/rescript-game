@@ -100,6 +100,6 @@ let rec draw = (tree, graphics) => {
   }
 
   let {topLeft, width, height} = tree.bbox
-  let (x, y) = topLeft
+  let {x, y} = topLeft
   graphics->PIXI.Graphics.drawRect(~x, ~y, ~width, ~height)
 }

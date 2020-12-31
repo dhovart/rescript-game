@@ -5,7 +5,7 @@ type t = {
   controllable: bool,
 }
 
-let make = (name, textureUrl, ~position=(0., 0.), ~controllable=false, ~polygon=?, ()) => {
+let make = (name, textureUrl, ~position=Vec2.make(0., 0.), ~controllable=false, ~polygon=?, ()) => {
   let texture = PIXI.Texture.from(~source=#String(textureUrl), ())
   let texWidth = texture->PIXI.Texture.getWidth
   let texHeight = texture->PIXI.Texture.getHeight
@@ -68,8 +68,8 @@ let appendDebugSprite = (gameObject: t, renderer: PIXI.Renderer.t) => {
 }
 
 let render = (gameObject: t) => {
-  let (px, py) = gameObject.entity.position
-  let (vx, vy) = gameObject.entity.velocity
+  let {x: px, y: py} = gameObject.entity.position
+  let {x: vx, y: vy} = gameObject.entity.velocity
 
   open PIXI.Container
   gameObject.spriteContainer->setX(px)
@@ -80,13 +80,13 @@ let render = (gameObject: t) => {
 
 let receiveInput = (gameObject, direction: option<Input.direction>) => {
   let {entity} = gameObject
-  let (vx, vy) = entity.velocity
-  let newVelocity = switch direction {
-  | Some(UP) => (vx, vy -. entity.acceleration)
-  | Some(DOWN) => (vx, vy +. entity.acceleration)
-  | Some(LEFT) => (vx -. entity.acceleration, vy)
-  | Some(RIGHT) => (vx +. entity.acceleration, vy)
-  | _ => (vx, vy)
+  let {x, y} = entity.velocity
+  let newVelocity: Vec2.t = switch direction {
+  | Some(UP) => {x, y: y -. entity.acceleration}
+  | Some(DOWN) => {x, y: y +. entity.acceleration}
+  | Some(LEFT) => {x: x -. entity.acceleration, y}
+  | Some(RIGHT) => {x: x +. entity.acceleration, y}
+  | _ => {x, y}
   }
   entity.velocity = newVelocity
 }

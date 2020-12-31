@@ -10,7 +10,7 @@ type t = {
 
 let getScreenDimensions = app => {
   let screen = app->Application.getScreen
-  (screen->Rectangle.getWidth, screen->Rectangle.getHeight)
+  Vec2.make(screen->Rectangle.getWidth, screen->Rectangle.getHeight)
 }
 
 let make = () => {
@@ -22,8 +22,8 @@ let make = () => {
     ),
     (),
   )
-  let (width, height) = getScreenDimensions(app)
-  let tree = QuadTree.make(~bbox=BBox.make((0., 0.), width, height), ())
+  let screenRect = getScreenDimensions(app)
+  let tree = QuadTree.make(~bbox=BBox.make(Vec2.make(0., 0.), screenRect.x, screenRect.y), ())
   {
     app,
     objects: [],
@@ -38,9 +38,8 @@ let getScreenCenter = game => Vec2.divide(getScreenDimensions(game.app), 2.)
 let getRenderer = game => game.app->Application.getRenderer
 
 let update = (game: t, (t, input)) => {
-  let (width, height) = getScreenDimensions(game.app)
-
-  game.tree = QuadTree.make(~bbox=BBox.make((0., 0.), width, height), ())
+  let {x: width, y: height} = getScreenDimensions(game.app)
+  game.tree = QuadTree.make(~bbox=BBox.make(Vec2.make(0., 0.), width, height), ())
 
   Belt.Array.forEach(game.objects, obj => {
     open GameObject

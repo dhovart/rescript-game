@@ -4,7 +4,7 @@ let bunnies = Belt.Array.makeBy(30, i =>
   GameObject.make(
     j`lapin-$i`,
     "https://pixijs.io/examples/examples/assets/bunny.png",
-    ~position=(Js.Math.random() *. 800., Js.Math.random() *. 600.),
+    ~position=Vec2.make(Js.Math.random() *. 800., Js.Math.random() *. 600.),
     (),
   )
 )

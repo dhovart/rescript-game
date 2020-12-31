@@ -17,10 +17,10 @@ let getSubquadrantBbox = (bbox: t, quadrant) => {
   let halfHeight = bbox.height /. 2.0
 
   let topLeftOffset = switch quadrant {
-  | NW => (0.0, 0.0)
-  | NE => (halfWidth, 0.0)
-  | SW => (0.0, halfHeight)
-  | SE => (halfWidth, halfHeight)
+  | NW => Vec2.make(0.0, 0.0)
+  | NE => Vec2.make(halfWidth, 0.0)
+  | SW => Vec2.make(0.0, halfHeight)
+  | SE => Vec2.make(halfWidth, halfHeight)
   }
 
   {width: halfWidth, height: halfHeight, topLeft: Vec2.add(bbox.topLeft, topLeftOffset)}
@@ -28,12 +28,9 @@ let getSubquadrantBbox = (bbox: t, quadrant) => {
 
 let quadrantFromPoint = (bbox, point: Vec2.t) => {
   let {topLeft, width, height} = bbox
-  let center = Vec2.add(topLeft, (width /. 2.0, height /. 2.0))
+  let center = Vec2.add(topLeft, Vec2.make(width /. 2.0, height /. 2.0))
 
-  let (px, py) = point
-  let (cx, cy) = center
-
-  switch (px > cx, py > cy) {
+  switch (point.x > center.x, point.y > center.y) {
   | (true, true) => SE
   | (true, false) => NE
   | (false, true) => SW
@@ -42,19 +39,17 @@ let quadrantFromPoint = (bbox, point: Vec2.t) => {
 }
 
 let contains = (bbox, entity: Entity.t) => {
-  let (ex, ey) = entity.position
-  let (x, y) = bbox.topLeft
-
-  ex >= x && ey >= y && ex <= x +. bbox.width && ey <= +.y +. bbox.height
+  entity.position.x >= bbox.topLeft.x &&
+  entity.position.y >= bbox.topLeft.y &&
+  entity.position.x <= bbox.topLeft.x +. bbox.width &&
+  entity.position.y <= +. bbox.topLeft.y +. bbox.height
 }
 
 let intersects = (bbox, other) => {
-  let (x, y) = bbox.topLeft
-  let (ox, oy) = other.topLeft
   !(
-    ox > x +. bbox.width ||
-    ox +. other.width < x ||
-    oy > y +. bbox.height ||
-    oy +. other.height < y
+    other.topLeft.x > bbox.topLeft.x +. bbox.width ||
+    other.topLeft.x +. other.width < bbox.topLeft.x ||
+    other.topLeft.y > bbox.topLeft.y +. bbox.height ||
+    other.topLeft.y +. other.height < bbox.topLeft.y
   )
 }
