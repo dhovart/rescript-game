@@ -1,22 +1,23 @@
+open PIXI
 open Belt.Array
 
 type t = {
-  app: PIXI.Application.t,
+  app: Application.t,
   debug: bool,
   mutable objects: array<GameObject.t>,
-  mutable debugGraphics: PIXI.Graphics.t,
+  mutable debugGraphics: Graphics.t,
   mutable tree: QuadTree.t,
-  mutable cameraTransforms: Matrix.t,
+  mutable cameraTransforms: Transform.t,
 }
 
 let getScreenDimensions = app => {
-  let screen = app->PIXI.Application.getScreen
-  Vec2.make(screen->PIXI.Rectangle.getWidth, screen->PIXI.Rectangle.getHeight)
+  let screen = app->Application.getScreen
+  Vec2.make(screen->Rectangle.getWidth, screen->Rectangle.getHeight)
 }
 
 let make = () => {
-  let app = PIXI.Application.create(
-    ~options=PIXI.Application.createApplicationOptions(
+  let app = Application.create(
+    ~options=Application.createApplicationOptions(
       ~backgroundColor=int_of_string("0x1099bb"),
       ~resolution=Webapi.Dom.window->Obj.magic->Js.Dict.unsafeGet("devicePixelRatio"),
       (),
@@ -29,39 +30,35 @@ let make = () => {
     app,
     objects: [],
     debug: true, // FIXME load from config or env var
-    debugGraphics: PIXI.Graphics.create(),
+    debugGraphics: Graphics.create(),
     tree,
-    cameraTransforms: Matrix.makeIdentity(),
+    cameraTransforms: Transform.create(),
   }
 }
 
 let getScreenCenter = game => Vec2.divide(getScreenDimensions(game.app), 2.)
-let getRenderer = game => game.app->PIXI.Application.getRenderer
+let getRenderer = game => game.app->Application.getRenderer
 
 let update = (game: t, (t, input)) => {
   let {x: width, y: height} = game.app->getScreenDimensions
-  let {x: cx, y: cy} = game->getScreenCenter
 
   game.tree = QuadTree.make(~bbox=BBox.make(Vec2.make(0., 0.), width, height), ())
 
   let a = Js.Math.abs_float(Js.Math.sin(Js.Int.toFloat(t) /. 1000.))
-  game.cameraTransforms = Matrix.makeTranslate(cx, cy)
-    ->Matrix.multiply(Matrix.makeScale(a, a))
-    ->Matrix.multiply(Matrix.makeRotate(a))
+  game.cameraTransforms->Transform.setPosition(game->getScreenCenter->Vec2.asPixiPoint)
+  game.cameraTransforms->Transform.setRotation(a)
+  game.cameraTransforms->Transform.setScale(a)
 
   {
-    open PIXI.Transform
-    open PIXI.ObservablePoint
+    open Transform
+    open ObservablePoint
 
-    let transform = PIXI.Transform.create()
-    transform->setFromMatrix(~matrix=game.cameraTransforms->Matrix.asPixiMatrix)
-
-    game.app->PIXI.Application.getStage->PIXI.Container.setTransform(
-      ~x=transform->getPosition->getX,
-      ~y=transform->getPosition->getY,
-      ~rotation=transform->getRotation,
-      ~scaleX=transform->getScale->Obj.magic->getX,
-      ~scaleY=transform->getScale->Obj.magic->getY,
+    game.app->Application.getStage->Container.setTransform(
+      ~x=game.cameraTransforms->getPosition->getX,
+      ~y=game.cameraTransforms->getPosition->getY,
+      ~rotation=game.cameraTransforms->getRotation,
+      ~scaleX=game.cameraTransforms->getScale,
+      ~scaleY=game.cameraTransforms->getScale,
     ())->ignore
   }
 
@@ -75,35 +72,35 @@ let update = (game: t, (t, input)) => {
     game.debugGraphics =
       game.tree->QuadTree.draw(
         game.debugGraphics
-        ->PIXI.Graphics.clear
-        ->PIXI.Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
-        ->PIXI.Graphics.moveTo(~x=0., ~y=0.),
+        ->Graphics.clear
+        ->Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
+        ->Graphics.moveTo(~x=0., ~y=0.),
       )
   }
 }
 
 let init = game => {
-  game.app->PIXI.Application.setResizeTo(#Window(Webapi.Dom.window))
+  game.app->Application.setResizeTo(#Window(Webapi.Dom.window))
 
   game.app
-  ->PIXI.Application.getView
+  ->Application.getView
   ->Webapi.Dom.HtmlElement.style
   ->Webapi.Dom.CssStyleDeclaration.setCssText("position: absolute; width: 100%; height: 100%")
 
   game.app
-  ->PIXI.Application.getStage
-  ->PIXI.Container.setPivot(game->getScreenCenter->Vec2.asPixiPoint)
+  ->Application.getStage
+  ->Container.setPivot(game->getScreenCenter->Vec2.asPixiPoint)
 
   Webapi.Dom.document
   ->Webapi.Dom.Document.asHtmlDocument
   ->Belt.Option.flatMap(document => document->Webapi.Dom.HtmlDocument.body)
   ->Belt.Option.map(body =>
-    body |> Webapi.Dom.Element.appendChild(game.app->PIXI.Application.getView)
+    body |> Webapi.Dom.Element.appendChild(game.app->Application.getView)
   )
   ->ignore
 
   if game.debug {
-    game.app->PIXI.Application.getStage->PIXI.Container.addChild(game.debugGraphics)->ignore
+    game.app->Application.getStage->Container.addChild(game.debugGraphics)->ignore
   }
 
   let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())
@@ -123,5 +120,5 @@ let appendObject = (game, gameObject) => {
     gameObject->GameObject.appendDebugSprite(getRenderer(game))
   }
 
-  game.app->PIXI.Application.getStage->PIXI.Container.addChild(gameObject.spriteContainer)->ignore
+  game.app->Application.getStage->Container.addChild(gameObject.spriteContainer)->ignore
 }
