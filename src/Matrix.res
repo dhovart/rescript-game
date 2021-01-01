@@ -30,12 +30,10 @@ let makeRotate = a => {
 }
 
 let rec transpose = xs => {
-  if xs->some(xs => xs->length === 0) {
+  if xs->some(Utils.empty) {
     []
   } else {
-    [xs->map(xs => xs[0])]->concat(
-        transpose(xs->map(xs => xs->slice(~offset=1, ~len=xs->length)))
-    )
+    [xs->map(Utils.head)]->concat(transpose(xs->map(Utils.tail)))
   }
 }
 
