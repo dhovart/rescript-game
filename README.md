@@ -5,6 +5,6 @@ My QuadTree implementation is adapted from this (nice!) intro to ReasonML: https
 
 # TODO :
 
-- [ ] create a Camera (& define how it should work)
+- [x] create a Camera (& define how it should work)
 - [ ] check collisions using SAT
 - [ ] attach behaviors to game objects

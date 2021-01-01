@@ -13,14 +13,14 @@ type t = {
   camera: Camera.t,
 }
 
-let getScreenDimensions = app => {
+let getScreenDimensions = () => {
   Vec2.make(
     Webapi.Dom.window->Webapi.Dom.Window.innerWidth->toFloat,
     Webapi.Dom.window->Webapi.Dom.Window.innerHeight->toFloat
   )
 }
 
-let getScreenCenter = game => Vec2.divide(getScreenDimensions(game.app), 2.)
+let getScreenCenter = () => Vec2.divide(getScreenDimensions(), 2.)
 
 let make = () => {
   let app = Application.create(
@@ -31,7 +31,7 @@ let make = () => {
     ),
     (),
   )
-  let screenRect = getScreenDimensions(app)
+  let screenRect = getScreenDimensions()
   let topLeft = screenRect->Vec2.multiply(-.0.5)
   let tree = QuadTree.make(~bbox=BBox.make(topLeft, screenRect.x, screenRect.y), ())
   {
@@ -50,7 +50,7 @@ let setPlayer = (game, player) => game.player = Some(player)
 let getRenderer = game => game.app->Application.getRenderer
 
 let update = (game: t, (t, input)) => {
-  let screenRect = game.app->getScreenDimensions
+  let screenRect = getScreenDimensions()
   let topLeft = screenRect->Vec2.multiply(-.0.5)
   game.tree = QuadTree.make(~bbox=BBox.make(topLeft, screenRect.x, screenRect.y), ())
   
@@ -105,7 +105,7 @@ let init = game => {
 
   game.app->Application.getStage->Container.addChild(game.scene)->ignore
 
-  let center = game->getScreenCenter
+  let center = getScreenCenter()
   game.app->Application.getStage->Container.setTransform(
       ~x=center.x,
       ~y=center.y,
