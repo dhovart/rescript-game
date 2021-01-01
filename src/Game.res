@@ -1,22 +1,22 @@
-open PIXI
 open Belt.Array
 
 type t = {
-  app: Application.t,
+  app: PIXI.Application.t,
   debug: bool,
   mutable objects: array<GameObject.t>,
-  mutable debugGraphics: Graphics.t,
+  mutable debugGraphics: PIXI.Graphics.t,
   mutable tree: QuadTree.t,
+  mutable cameraTransforms: Matrix.t,
 }
 
 let getScreenDimensions = app => {
-  let screen = app->Application.getScreen
-  Vec2.make(screen->Rectangle.getWidth, screen->Rectangle.getHeight)
+  let screen = app->PIXI.Application.getScreen
+  Vec2.make(screen->PIXI.Rectangle.getWidth, screen->PIXI.Rectangle.getHeight)
 }
 
 let make = () => {
-  let app = Application.create(
-    ~options=Application.createApplicationOptions(
+  let app = PIXI.Application.create(
+    ~options=PIXI.Application.createApplicationOptions(
       ~backgroundColor=int_of_string("0x1099bb"),
       ~resolution=Webapi.Dom.window->Obj.magic->Js.Dict.unsafeGet("devicePixelRatio"),
       (),
@@ -26,24 +26,25 @@ let make = () => {
   let screenRect = getScreenDimensions(app)
   let tree = QuadTree.make(~bbox=BBox.make(Vec2.make(0., 0.), screenRect.x, screenRect.y), ())
   {
-    app,
+    app: app,
     objects: [],
     debug: true, // FIXME load from config or env var
     debugGraphics: PIXI.Graphics.create(),
-    tree,
+    tree: tree,
+    cameraTransforms: Matrix.makeIdentity(),
   }
 }
 
 let getScreenCenter = game => Vec2.divide(getScreenDimensions(game.app), 2.)
-
-let getRenderer = game => game.app->Application.getRenderer
+let getRenderer = game => game.app->PIXI.Application.getRenderer
 
 let update = (game: t, (t, input)) => {
   let {x: width, y: height} = getScreenDimensions(game.app)
   game.tree = QuadTree.make(~bbox=BBox.make(Vec2.make(0., 0.), width, height), ())
+  //game.cameraTransforms = Matrix.makeRotate(Js.Math.sin(Js.Int.toFloat(t) /. 100.))
   game.objects->forEach(obj => {
     open GameObject
-    obj->update(input)->render->ignore
+    obj->update(input)->render(game.cameraTransforms)->ignore
     game.tree = game.tree->QuadTree.insert(obj.entity)
   })
 
@@ -51,29 +52,31 @@ let update = (game: t, (t, input)) => {
     game.debugGraphics =
       game.tree->QuadTree.draw(
         game.debugGraphics
-        ->Graphics.clear
-        ->Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
-        ->Graphics.moveTo(~x=0., ~y=0.),
+        ->PIXI.Graphics.clear
+        ->PIXI.Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
+        ->PIXI.Graphics.moveTo(~x=0., ~y=0.),
       )
   }
 }
 
 let init = game => {
-  game.app->Application.setResizeTo(#Window(Webapi.Dom.window))
+  game.app->PIXI.Application.setResizeTo(#Window(Webapi.Dom.window))
 
   game.app
-  ->Application.getView
+  ->PIXI.Application.getView
   ->Webapi.Dom.HtmlElement.style
   ->Webapi.Dom.CssStyleDeclaration.setCssText("position: absolute; width: 100%; height: 100%")
 
   Webapi.Dom.document
   ->Webapi.Dom.Document.asHtmlDocument
   ->Belt.Option.flatMap(document => document->Webapi.Dom.HtmlDocument.body)
-  ->Belt.Option.map(body => body |> Webapi.Dom.Element.appendChild(game.app->Application.getView))
+  ->Belt.Option.map(body =>
+    body |> Webapi.Dom.Element.appendChild(game.app->PIXI.Application.getView)
+  )
   ->ignore
 
   if game.debug {
-    game.app->Application.getStage->Container.addChild(game.debugGraphics)->ignore
+    game.app->PIXI.Application.getStage->PIXI.Container.addChild(game.debugGraphics)->ignore
   }
 
   let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())
@@ -93,5 +96,5 @@ let appendObject = (game, gameObject) => {
     gameObject->GameObject.appendDebugSprite(getRenderer(game))
   }
 
-  game.app->Application.getStage->Container.addChild(gameObject.spriteContainer)->ignore
+  game.app->PIXI.Application.getStage->PIXI.Container.addChild(gameObject.spriteContainer)->ignore
 }
