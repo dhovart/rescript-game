@@ -40,11 +40,9 @@ let createNode = (bbox, quadrant, entity) => {
 }
 
 let rec insert = (tree: t, entity: Entity.t, camera: Camera.t) => {
-  let transformedEntityPosition = entity.position->Vec2.transform(
-    Matrix.makeIdentity()
-    ->Matrix.multiply(Matrix.makeTranslate(camera.pivot.x, camera.pivot.y))
-    ->Matrix.multiply(Matrix.makeRotate(camera.rotation))
-    ->Matrix.multiply(Matrix.makeScale(camera.zoom, camera.zoom))
+  let transformedEntityPosition = entity.position->Vec2.substract(camera.pivot)
+    ->Vec2.transform(Matrix.makeScale(camera.zoom, camera.zoom)
+      ->Matrix.multiply(Matrix.makeRotate(camera.rotation))
   )
   switch(tree.bbox->BBox.contains(transformedEntityPosition)) {
   | true => {
