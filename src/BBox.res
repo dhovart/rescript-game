@@ -38,11 +38,11 @@ let quadrantFromPoint = (bbox, point: Vec2.t) => {
   }
 }
 
-let contains = (bbox, entity: Entity.t) => {
-  entity.position.x >= bbox.topLeft.x &&
-  entity.position.y >= bbox.topLeft.y &&
-  entity.position.x <= bbox.topLeft.x +. bbox.width &&
-  entity.position.y <= bbox.topLeft.y +. bbox.height
+let contains = (bbox, point: Vec2.t) => {
+  point.x >= bbox.topLeft.x &&
+  point.y >= bbox.topLeft.y &&
+  point.x <= bbox.topLeft.x +. bbox.width &&
+  point.y <= bbox.topLeft.y +. bbox.height
 }
 
 let intersects = (bbox, other) => {

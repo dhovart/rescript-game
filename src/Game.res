@@ -20,6 +20,8 @@ let getScreenDimensions = app => {
   )
 }
 
+let getScreenCenter = game => Vec2.divide(getScreenDimensions(game.app), 2.)
+
 let make = () => {
   let app = Application.create(
     ~options=Application.createApplicationOptions(
@@ -30,7 +32,8 @@ let make = () => {
     (),
   )
   let screenRect = getScreenDimensions(app)
-  let tree = QuadTree.make(~bbox=BBox.make(Vec2.make(0., 0.), screenRect.x, screenRect.y), ())
+  let topLeft = screenRect->Vec2.multiply(-.0.5)
+  let tree = QuadTree.make(~bbox=BBox.make(topLeft, screenRect.x, screenRect.y), ())
   {
     app,
     objects: [],
@@ -44,24 +47,19 @@ let make = () => {
 }
 
 let setPlayer = (game, player) => game.player = Some(player)
-let getScreenCenter = game => Vec2.divide(getScreenDimensions(game.app), 2.)
 let getRenderer = game => game.app->Application.getRenderer
 
 let update = (game: t, (t, input)) => {
-  let {x: width, y: height} = game.app->getScreenDimensions->Vec2.divide(game.camera.zoom)
-  let topLeft = game.camera.pivot->Vec2.substract(Vec2.make(width/.2., height/.2.))
-  game.tree = QuadTree.make(~bbox=BBox.make(
-    topLeft,
-    width,
-    height
-  ), ())
-
+  let screenRect = game.app->getScreenDimensions
+  let topLeft = screenRect->Vec2.multiply(-.0.5)
+  game.tree = QuadTree.make(~bbox=BBox.make(topLeft, screenRect.x, screenRect.y), ())
+  
   game.camera.pivot = switch game.player {
   | Some(player) => player.entity.position
   | None => Vec2.make(0., 0.)
   }
 
-  // game.camera.rotation = Js.Math.sin(t->toFloat /. 1000.)
+  game.camera.rotation = Js.Math.sin(t->toFloat /. 1000.)
   game.camera.zoom = Js.Math.abs_float(Js.Math.cos(t->toFloat /. 1000.))
 
   game.scene->Container.setTransform(
@@ -75,7 +73,7 @@ let update = (game: t, (t, input)) => {
   game.objects->forEach(obj => {
     open GameObject
     obj->update(input)->render->ignore
-    game.tree = game.tree->QuadTree.insert(obj.entity)
+    game.tree = game.tree->QuadTree.insert(obj.entity, game.camera)
   })
 
   if game.debug {
@@ -106,7 +104,6 @@ let init = game => {
   ->ignore
 
   game.app->Application.getStage->Container.addChild(game.scene)->ignore
-  ->ignore
 
   let center = game->getScreenCenter
   game.app->Application.getStage->Container.setTransform(
@@ -116,7 +113,7 @@ let init = game => {
   ->ignore
 
   if game.debug {
-    game.scene->Container.addChild(game.debugGraphics)->ignore
+    game.app->Application.getStage->Container.addChild(game.debugGraphics)->ignore
   }
 
   let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())

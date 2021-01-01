@@ -39,16 +39,22 @@ let createNode = (bbox, quadrant, entity) => {
   make(~bbox=subquadrant, ~entity=Some(entity), ())
 }
 
-let rec insert = (tree: t, entity: Entity.t) => {
-  switch(tree.bbox->BBox.contains(entity)) {
+let rec insert = (tree: t, entity: Entity.t, camera: Camera.t) => {
+  let transformedEntityPosition = entity.position->Vec2.transform(
+    Matrix.makeIdentity()
+    ->Matrix.multiply(Matrix.makeTranslate(camera.pivot.x, camera.pivot.y))
+    ->Matrix.multiply(Matrix.makeRotate(camera.rotation))
+    ->Matrix.multiply(Matrix.makeScale(camera.zoom, camera.zoom))
+  )
+  switch(tree.bbox->BBox.contains(transformedEntityPosition)) {
   | true => {
     switch tree.entity {
     | Some(_) =>
-      let quadrant = tree.bbox->quadrantFromPoint(entity.position)
+      let quadrant = tree.bbox->quadrantFromPoint(transformedEntityPosition)
       let child = getNode(tree, quadrant)
 
       switch child {
-      | Some(node) => setNode(tree, quadrant, insert(node, entity))
+      | Some(node) => setNode(tree, quadrant, insert(node, entity, camera))
       | None => setNode(tree, quadrant, createNode(tree.bbox, quadrant, entity))
       }
     | None => {...tree, entity: Some(entity)}
