@@ -39,7 +39,7 @@ let make = (name, textureUrl, ~position=Vec2.make(0., 0.), ~controllable=false, 
 }
 
 let appendDebugSprite = (gameObject: t, renderer: PIXI.Renderer.t) => {
-  let bbox = gameObject.polygon->Polygon.getBBox
+  let bbox = gameObject.polygon.bbox
   let debugGraphics = {
     open PIXI.Graphics
     create()
