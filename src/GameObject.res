@@ -68,13 +68,10 @@ let appendDebugSprite = (gameObject: t, renderer: PIXI.Renderer.t) => {
 }
 
 let render = (gameObject: t) => {
-  let {x: px, y: py} = gameObject.entity.position
-  let {x: vx, y: vy} = gameObject.entity.velocity
-
   open PIXI.Container
-  gameObject.spriteContainer->setX(px)
-  gameObject.spriteContainer->setY(py)
-  gameObject.spriteContainer->setRotation(Js.Math._PI /. 2. +. Js.Math.atan2(~y=vy, ~x=vx, ()))
+  gameObject.spriteContainer->setX(gameObject.entity.position.x)
+  gameObject.spriteContainer->setY(gameObject.entity.position.y)
+  gameObject.spriteContainer->setRotation(gameObject.entity.rotation)
   gameObject
 }
 

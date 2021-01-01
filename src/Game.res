@@ -1,5 +1,6 @@
 open PIXI
 open Belt.Array
+open Belt.Int
 
 type t = {
   app: Application.t,
@@ -7,12 +8,16 @@ type t = {
   mutable objects: array<GameObject.t>,
   mutable debugGraphics: Graphics.t,
   mutable tree: QuadTree.t,
-  mutable cameraTransforms: Transform.t,
+  mutable scene: Container.t,
+  mutable player: option<GameObject.t>,
+  camera: Camera.t,
 }
 
 let getScreenDimensions = app => {
-  let screen = app->Application.getScreen
-  Vec2.make(screen->Rectangle.getWidth, screen->Rectangle.getHeight)
+  Vec2.make(
+    Webapi.Dom.window->Webapi.Dom.Window.innerWidth->toFloat,
+    Webapi.Dom.window->Webapi.Dom.Window.innerHeight->toFloat
+  )
 }
 
 let make = () => {
@@ -32,35 +37,40 @@ let make = () => {
     debug: true, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
     tree,
-    cameraTransforms: Transform.create(),
+    camera: Camera.make(),
+    player: None,
+    scene: Container.create()
   }
 }
 
+let setPlayer = (game, player) => game.player = Some(player)
 let getScreenCenter = game => Vec2.divide(getScreenDimensions(game.app), 2.)
 let getRenderer = game => game.app->Application.getRenderer
 
 let update = (game: t, (t, input)) => {
-  let {x: width, y: height} = game.app->getScreenDimensions
+  let {x: width, y: height} = game.app->getScreenDimensions->Vec2.divide(game.camera.zoom)
+  let topLeft = game.camera.pivot->Vec2.substract(Vec2.make(width/.2., height/.2.))
+  game.tree = QuadTree.make(~bbox=BBox.make(
+    topLeft,
+    width,
+    height
+  ), ())
 
-  game.tree = QuadTree.make(~bbox=BBox.make(Vec2.make(0., 0.), width, height), ())
-
-  let a = Js.Math.abs_float(Js.Math.sin(Js.Int.toFloat(t) /. 1000.))
-  game.cameraTransforms->Transform.setPosition(game->getScreenCenter->Vec2.asPixiPoint)
-  game.cameraTransforms->Transform.setRotation(a)
-  game.cameraTransforms->Transform.setScale(a)
-
-  {
-    open Transform
-    open ObservablePoint
-
-    game.app->Application.getStage->Container.setTransform(
-      ~x=game.cameraTransforms->getPosition->getX,
-      ~y=game.cameraTransforms->getPosition->getY,
-      ~rotation=game.cameraTransforms->getRotation,
-      ~scaleX=game.cameraTransforms->getScale,
-      ~scaleY=game.cameraTransforms->getScale,
-    ())->ignore
+  game.camera.pivot = switch game.player {
+  | Some(player) => player.entity.position
+  | None => Vec2.make(0., 0.)
   }
+
+  // game.camera.rotation = Js.Math.sin(t->toFloat /. 1000.)
+  game.camera.zoom = Js.Math.abs_float(Js.Math.cos(t->toFloat /. 1000.))
+
+  game.scene->Container.setTransform(
+    ~pivotX=game.camera.pivot.x,
+    ~pivotY=game.camera.pivot.y,
+    ~scaleX=game.camera.zoom,
+    ~scaleY=game.camera.zoom,
+    ~rotation=game.camera.rotation,
+  ())->ignore
 
   game.objects->forEach(obj => {
     open GameObject
@@ -87,10 +97,6 @@ let init = game => {
   ->Webapi.Dom.HtmlElement.style
   ->Webapi.Dom.CssStyleDeclaration.setCssText("position: absolute; width: 100%; height: 100%")
 
-  game.app
-  ->Application.getStage
-  ->Container.setPivot(game->getScreenCenter->Vec2.asPixiPoint)
-
   Webapi.Dom.document
   ->Webapi.Dom.Document.asHtmlDocument
   ->Belt.Option.flatMap(document => document->Webapi.Dom.HtmlDocument.body)
@@ -99,8 +105,18 @@ let init = game => {
   )
   ->ignore
 
+  game.app->Application.getStage->Container.addChild(game.scene)->ignore
+  ->ignore
+
+  let center = game->getScreenCenter
+  game.app->Application.getStage->Container.setTransform(
+      ~x=center.x,
+      ~y=center.y,
+      ())
+  ->ignore
+
   if game.debug {
-    game.app->Application.getStage->Container.addChild(game.debugGraphics)->ignore
+    game.scene->Container.addChild(game.debugGraphics)->ignore
   }
 
   let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())
@@ -120,5 +136,5 @@ let appendObject = (game, gameObject) => {
     gameObject->GameObject.appendDebugSprite(getRenderer(game))
   }
 
-  game.app->Application.getStage->Container.addChild(gameObject.spriteContainer)->ignore
+  game.scene->Container.addChild(gameObject.spriteContainer)->ignore
 }

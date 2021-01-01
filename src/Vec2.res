@@ -16,4 +16,7 @@ let transform = (vec2, mat) => {
   | _ => vec2
   }
 }
+let translate = (vec, vec2) => vec->transform(Matrix.makeTranslate(vec2.x, vec2.y))
+let rotate = (vec2, a) => vec2->transform(Matrix.makeRotate(a))
+let scale = (vec2, z) => vec2->transform(Matrix.makeScale(z, z))
 let asPixiPoint = ({x, y}) => PIXI.ObservablePoint.create(~x, ~y, ~cb=() => (), ())

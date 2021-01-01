@@ -1,4 +1,5 @@
-let app = Game.make()
+open Game
+let game = make()
 
 let bunnies = Belt.Array.makeBy(30, i =>
   GameObject.make(
@@ -16,6 +17,7 @@ let bunny = GameObject.make(
   (),
 )
 
-Belt.Array.forEach(bunnies, app->Game.appendObject)
-app->Game.appendObject(bunny)
-app->Game.init
+Belt.Array.forEach(bunnies, game->appendObject)
+game->appendObject(bunny)
+game->setPlayer(bunny)
+game->init

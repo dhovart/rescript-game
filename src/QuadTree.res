@@ -40,16 +40,21 @@ let createNode = (bbox, quadrant, entity) => {
 }
 
 let rec insert = (tree: t, entity: Entity.t) => {
-  switch tree.entity {
-  | Some(_) =>
-    let quadrant = tree.bbox->quadrantFromPoint(entity.position)
-    let child = getNode(tree, quadrant)
+  switch(tree.bbox->BBox.contains(entity)) {
+  | true => {
+    switch tree.entity {
+    | Some(_) =>
+      let quadrant = tree.bbox->quadrantFromPoint(entity.position)
+      let child = getNode(tree, quadrant)
 
-    switch child {
-    | Some(node) => setNode(tree, quadrant, insert(node, entity))
-    | None => setNode(tree, quadrant, createNode(tree.bbox, quadrant, entity))
+      switch child {
+      | Some(node) => setNode(tree, quadrant, insert(node, entity))
+      | None => setNode(tree, quadrant, createNode(tree.bbox, quadrant, entity))
+      }
+    | None => {...tree, entity: Some(entity)}
     }
-  | None => {...tree, entity: Some(entity)}
+  }
+  | false => tree
   }
 }
 
