@@ -26,11 +26,11 @@ let make = () => {
   let screenRect = getScreenDimensions(app)
   let tree = QuadTree.make(~bbox=BBox.make(Vec2.make(0., 0.), screenRect.x, screenRect.y), ())
   {
-    app: app,
+    app,
     objects: [],
     debug: true, // FIXME load from config or env var
     debugGraphics: PIXI.Graphics.create(),
-    tree: tree,
+    tree,
     cameraTransforms: Matrix.makeIdentity(),
   }
 }
@@ -39,12 +39,35 @@ let getScreenCenter = game => Vec2.divide(getScreenDimensions(game.app), 2.)
 let getRenderer = game => game.app->PIXI.Application.getRenderer
 
 let update = (game: t, (t, input)) => {
-  let {x: width, y: height} = getScreenDimensions(game.app)
+  let {x: width, y: height} = game.app->getScreenDimensions
+  let {x: cx, y: cy} = game->getScreenCenter
+
   game.tree = QuadTree.make(~bbox=BBox.make(Vec2.make(0., 0.), width, height), ())
-  //game.cameraTransforms = Matrix.makeRotate(Js.Math.sin(Js.Int.toFloat(t) /. 100.))
+
+  let a = Js.Math.abs_float(Js.Math.sin(Js.Int.toFloat(t) /. 1000.))
+  game.cameraTransforms = Matrix.makeTranslate(cx, cy)
+    ->Matrix.multiply(Matrix.makeScale(a, a))
+    ->Matrix.multiply(Matrix.makeRotate(a))
+
+  {
+    open PIXI.Transform
+    open PIXI.ObservablePoint
+
+    let transform = PIXI.Transform.create()
+    transform->setFromMatrix(~matrix=game.cameraTransforms->Matrix.asPixiMatrix)
+
+    game.app->PIXI.Application.getStage->PIXI.Container.setTransform(
+      ~x=transform->getPosition->getX,
+      ~y=transform->getPosition->getY,
+      ~rotation=transform->getRotation,
+      ~scaleX=transform->getScale->Obj.magic->getX,
+      ~scaleY=transform->getScale->Obj.magic->getY,
+    ())->ignore
+  }
+
   game.objects->forEach(obj => {
     open GameObject
-    obj->update(input)->render(game.cameraTransforms)->ignore
+    obj->update(input)->render->ignore
     game.tree = game.tree->QuadTree.insert(obj.entity)
   })
 
@@ -66,6 +89,10 @@ let init = game => {
   ->PIXI.Application.getView
   ->Webapi.Dom.HtmlElement.style
   ->Webapi.Dom.CssStyleDeclaration.setCssText("position: absolute; width: 100%; height: 100%")
+
+  game.app
+  ->PIXI.Application.getStage
+  ->PIXI.Container.setPivot(game->getScreenCenter->Vec2.asPixiPoint)
 
   Webapi.Dom.document
   ->Webapi.Dom.Document.asHtmlDocument

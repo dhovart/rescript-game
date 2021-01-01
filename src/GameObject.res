@@ -67,8 +67,8 @@ let appendDebugSprite = (gameObject: t, renderer: PIXI.Renderer.t) => {
   gameObject.spriteContainer->PIXI.Container.addChild(sprite)->ignore
 }
 
-let render = (gameObject: t, transformMatrix) => {
-  let {x: px, y: py} = gameObject.entity.position->Vec2.transform(transformMatrix)
+let render = (gameObject: t) => {
+  let {x: px, y: py} = gameObject.entity.position
   let {x: vx, y: vy} = gameObject.entity.velocity
 
   open PIXI.Container

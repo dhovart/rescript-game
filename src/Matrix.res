@@ -44,3 +44,17 @@ let multiply = (m1, m2) => {
     m1[i]->reduceWithIndex(0., ((acc, x, k) => acc +. x *. m2[j][k]))
   ))
 }
+
+let getRotation = mat => Js.Math.atan2(~y=-.mat[0][1], ~x=-.mat[0][0])
+
+let asPixiMatrix = mat =>
+  PIXI.Matrix.create(
+    ~a=mat[0][0],
+    ~b=mat[1][0],
+    ~c=mat[0][1],
+    ~d=mat[1][1],
+    ~tx=mat[0][2],
+    ~ty=mat[1][2],
+    ()
+  )
+
