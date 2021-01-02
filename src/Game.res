@@ -5,12 +5,9 @@ open Belt.Int
 type t = {
   app: Application.t,
   debug: bool,
-  mutable objects: array<GameObject.t>,
-  mutable debugGraphics: Graphics.t,
-  mutable tree: QuadTree.t,
-  mutable scene: Container.t,
-  mutable player: option<GameObject.t>,
-  camera: Camera.t,
+  debugGraphics: Graphics.t,
+  scene: Container.t,
+  mutable state: GameState.t,
 }
 
 let getScreenDimensions = () => {
@@ -18,6 +15,11 @@ let getScreenDimensions = () => {
     Webapi.Dom.window->Webapi.Dom.Window.innerWidth->toFloat,
     Webapi.Dom.window->Webapi.Dom.Window.innerHeight->toFloat
   )
+}
+
+let setState = (game, state) => {
+  game.state = state
+  game
 }
 
 let getScreenCenter = () => Vec2.divide(getScreenDimensions(), 2.)
@@ -31,66 +33,56 @@ let make = () => {
     ),
     (),
   )
-  let screenRect = getScreenDimensions()
-  let topLeft = screenRect->Vec2.multiply(-.0.5)
-  let tree = QuadTree.make(~bbox=BBox.make(topLeft, screenRect.x, screenRect.y), ())
   {
     app,
-    objects: [],
     debug: true, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
-    tree,
-    camera: Camera.make(),
-    player: None,
-    scene: Container.create()
+    scene: Container.create(),
+    state: GameState.make()
   }
 }
 
-let setPlayer = (game, player) => game.player = Some(player)
 let getRenderer = game => game.app->Application.getRenderer
+let setDebugGraphics = (game, debugGraphics) => {...game, debugGraphics}
 
-let update = (game: t, (t, input)) => {
-  let screenRect = getScreenDimensions()
-  let topLeft = screenRect->Vec2.multiply(-.0.5)
-  game.tree = QuadTree.make(~bbox=BBox.make(topLeft, screenRect.x, screenRect.y), ())
-  
-  game.camera.pivot = switch game.player {
-  | Some(player) => player.entity.position
-  | None => Vec2.make(0., 0.)
-  }
-
-  // game.camera.zoom = switch game.player {
-  // | Some(player) => Js.Math.min_float(
-  //     1.4,
-  //     Js.Math.max_float(0.4, player.entity.velocity->Vec2.length /. player.entity.maxSpeed)
-  //   )
-  // | None => 1.
-  // }
-  // game.camera.rotation = Js.Math.sin(t->toFloat /. 1000.)
-
+let updateScene = (game) => {
   game.scene->Container.setTransform(
-    ~pivotX=game.camera.pivot.x,
-    ~pivotY=game.camera.pivot.y,
-    ~scaleX=game.camera.zoom,
-    ~scaleY=game.camera.zoom,
-    ~rotation=game.camera.rotation,
+    ~pivotX=game.state.camera.pivot.x,
+    ~pivotY=game.state.camera.pivot.y,
+    ~scaleX=game.state.camera.zoom,
+    ~scaleY=game.state.camera.zoom,
+    ~rotation=game.state.camera.rotation,
   ())->ignore
+  game
+}
 
-  game.objects->forEach(obj => {
-    open GameObject
-    obj->update(input)->render->ignore
-    game.tree = game.tree->QuadTree.insert(obj.entity, game.camera)
-  })
-
+let renderDebugGraphics = (game) => {
   if game.debug {
-    game.debugGraphics =
-      game.tree->QuadTree.draw(
+    game->setDebugGraphics(
+      game.state.tree->QuadTree.draw(
         game.debugGraphics
         ->Graphics.clear
         ->Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
         ->Graphics.moveTo(~x=0., ~y=0.),
       )
+    )
+  } else {
+    game
   }
+}
+
+let updateState = (game, time, input) => {
+  game->setState(
+    game.state->GameState.update(time, input, getScreenDimensions())
+  )
+}
+
+let update = (game: t, (t, input)) => {
+  game
+  ->updateState(t, input)
+  ->updateScene
+  ->renderDebugGraphics
+  ->ignore
 }
 
 let init = game => {
@@ -121,23 +113,33 @@ let init = game => {
   if game.debug {
     game.app->Application.getStage->Container.addChild(game.debugGraphics)->ignore
   }
-
   let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())
-
   Rx.combineLatest2(
     ticker |> Rx.Operators.startWith([0]),
     Input.playerDirection |> Rx.Operators.startWith([None]),
   )
-  |> Rx.Observable.subscribe(~next=update(game))
+  |> Rx.Observable.subscribe(~next=game->update)
   |> ignore
 }
 
-let appendObject = (game, gameObject) => {
-  game.objects = game.objects->concat([gameObject])
-
+// FIXME move me
+let appendGameObjectDebugSprite = (game, gameObject) => {
   if game.debug {
-    gameObject->GameObject.appendDebugSprite(getRenderer(game))
+    gameObject->GameObject.appendDebugSprite(game->getRenderer)
   }
-
-  game.scene->Container.addChild(gameObject.spriteContainer)->ignore
+  game
 }
+
+let appendObject = (game, gameObject: GameObject.t) => {
+  game.scene->Container.addChild(gameObject.spriteContainer)->ignore
+  game->setState(
+    game.state->GameState.setObjects(game.state.objects->concat([gameObject]))
+  )
+  ->appendGameObjectDebugSprite(gameObject)
+}
+
+let appendObjects = (game, gameObjects) => {
+  gameObjects->reduce(game, (game, object) => game->appendObject(object))
+}
+
+let setPlayer = (game, player) => game->setState(game.state->GameState.setPlayer(player))

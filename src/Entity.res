@@ -1,8 +1,8 @@
 type t = {
-  mutable velocity: Vec2.t,
-  mutable steeringForce: Vec2.t,
-  mutable position: Vec2.t,
-  mutable rotation: float,
+  velocity: Vec2.t,
+  steeringForce: Vec2.t,
+  position: Vec2.t,
+  rotation: float,
   maxSpeed: float,
   acceleration: float,
   name: string,
@@ -10,7 +10,8 @@ type t = {
 
 let make = (
   ~name: string,
-  ~velocity=Vec2.make(0., 0.),
+  ~velocity=Vec2.make(0.,
+  0.),
   ~steeringForce=Vec2.make(0., 0.),
   ~position=Vec2.make(0., 0.),
   ~maxSpeed=6.,
@@ -27,15 +28,21 @@ let make = (
   rotation,
 }
 
+let setVelocity = (entity, velocity) => { ...entity, velocity }
+let setSteeringForce = (entity, steeringForce) => { ...entity, steeringForce }
+
 let update = entity => {
-  open Vec2
   // FIXME - add weights for behaviors
-  entity.velocity = entity.velocity->add(entity.steeringForce->multiply(0.02))
-  if (entity.velocity->length > entity.maxSpeed) {
-    entity.velocity->normalize->multiply(entity.maxSpeed)->ignore
+  let velocity = entity.velocity
+    ->Vec2.add(entity.steeringForce->Vec2.multiply(0.02))
+    ->Vec2.multiply(0.98)
+    ->Vec2.limit(entity.maxSpeed)
+  let rotation = Js.Math._PI /. 2. +. Js.Math.atan2(~y=velocity.y, ~x=velocity.x, ())
+  let position = entity.position->Vec2.add(velocity)
+  {
+    ...entity,
+    velocity,
+    rotation,
+    position,
   }
-  entity.velocity = entity.velocity->multiply(0.98)
-  entity.rotation = Js.Math._PI /. 2. +. Js.Math.atan2(~y=entity.velocity.y, ~x=entity.velocity.x, ())
-  entity.position = entity.position->add(entity.velocity)
-  entity
 }

@@ -3,7 +3,7 @@ type t = {
   entity: Entity.t,
   polygon: Polygon.t,
   controllable: bool,
-  mutable behavior: option<Behavior.t>,
+  behavior: option<Behavior.t>,
 }
 
 let make = (
@@ -48,6 +48,9 @@ let make = (
   }
 }
 
+let setEntity = (gameObject, entity) => {...gameObject, entity}
+let setBehavior = (gameObject, behavior) => {...gameObject, behavior: Some(behavior)}
+
 let appendDebugSprite = (gameObject: t, renderer: PIXI.Renderer.t) => {
   let bbox = gameObject.polygon.bbox
   let debugGraphics = {
@@ -86,31 +89,37 @@ let render = (gameObject: t) => {
 }
 
 let receiveInput = (gameObject, direction: option<Input.direction>) => {
-  let {entity} = gameObject
-  let {x, y} = entity.velocity
-  let newVelocity: Vec2.t = switch direction {
-  | Some(UP) => {x, y: y -. entity.acceleration}
-  | Some(DOWN) => {x, y: y +. entity.acceleration}
-  | Some(LEFT) => {x: x -. entity.acceleration, y}
-  | Some(RIGHT) => {x: x +. entity.acceleration, y}
-  | _ => {x, y}
+  if (!gameObject.controllable) {
+    gameObject
+  } else {
+    let {entity} = gameObject
+    let {x, y} = entity.velocity
+    // FIXME: we should be able to set several directions at once 
+    let velocity: Vec2.t = switch direction {
+    | Some(UP) => {x, y: y -. entity.acceleration}
+    | Some(DOWN) => {x, y: y +. entity.acceleration}
+    | Some(LEFT) => {x: x -. entity.acceleration, y}
+    | Some(RIGHT) => {x: x +. entity.acceleration, y}
+    | _ => {x, y}
+    }
+    gameObject->setEntity(entity->Entity.setVelocity(velocity))
   }
-  entity.velocity = newVelocity
+}
+
+let updateEntity = (gameObject) => gameObject->setEntity(gameObject.entity->Entity.update)
+
+let applyBehaviors = (gameObject) => {
+  gameObject->setEntity(gameObject.entity->Entity.setSteeringForce(
+    switch(gameObject.behavior) {
+    | Some(behavior) => behavior->Behavior.getSteering(gameObject.entity)
+    | None => Vec2.make(0., 0.)
+    })
+  )
 }
 
 let update = (gameObject: t, input: option<Input.direction>) => {
-  gameObject.entity.steeringForce = switch(gameObject.behavior) {
-  | Some(behavior) => behavior->Behavior.getSteering(gameObject.entity)
-  | None => Vec2.make(0., 0.)
-  }
-  if gameObject.controllable {
-    receiveInput(gameObject, input)
-  }
-  gameObject.entity->Entity.update->ignore
-  gameObject
-}
-
-let setBehavior = (gameObject, behavior) => {
-  gameObject.behavior = Some(behavior)
-  gameObject
+ gameObject
+  ->applyBehaviors
+  ->receiveInput(input)
+  ->updateEntity
 }

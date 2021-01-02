@@ -10,7 +10,7 @@ let getBBox = points => {
   let right = Utils.findMax(xs)
   let top = Utils.findMin(ys)
   let bottom = Utils.findMax(ys)
-  BBox.make(Vec2.make(left, top), right -. left, bottom -. top)
+  BBox.make(~topLeft=Vec2.make(left, top), ~width=right -. left, ~height=bottom -. top, ())
 }
 
 let make = points => { points, bbox: getBBox(points) }

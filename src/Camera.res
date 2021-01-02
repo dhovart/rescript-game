@@ -1,7 +1,7 @@
 type t = {
-  mutable zoom: float,
-  mutable pivot: Vec2.t,
-  mutable rotation: float,
+  zoom: float,
+  pivot: Vec2.t,
+  rotation: float,
 }
 
 let make = (
@@ -13,3 +13,7 @@ let make = (
     pivot,
     rotation
 }
+
+let setPivot = (camera, pivot) => {...camera, pivot}
+let setZoom = (camera, zoom) => {...camera, zoom}
+let setRotation = (camera, rotation) => {...camera, rotation}

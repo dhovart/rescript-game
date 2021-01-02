@@ -10,7 +10,12 @@ type quadrant =
   | SE
   | SW
 
-let make = (topLeft, width, height) => {topLeft, width, height}
+let make = (
+  ~topLeft=Vec2.make(0.,0.),
+  ~width=0.,
+  ~height=0.,
+  ()
+) => {topLeft, width, height}
 
 let getSubquadrantBbox = (bbox: t, quadrant) => {
   let halfWidth = bbox.width /. 2.0
