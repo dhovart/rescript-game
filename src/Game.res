@@ -37,7 +37,7 @@ let make = () => {
   {
     app,
     objects: [],
-    debug: true, // FIXME load from config or env var
+    debug: false, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
     tree,
     camera: Camera.make(),
@@ -59,8 +59,14 @@ let update = (game: t, (t, input)) => {
   | None => Vec2.make(0., 0.)
   }
 
-  game.camera.rotation = Js.Math.sin(t->toFloat /. 1000.)
-  game.camera.zoom = Js.Math.abs_float(Js.Math.cos(t->toFloat /. 1000.))
+  game.camera.zoom = switch game.player {
+  | Some(player) => Js.Math.min_float(
+      1.4,
+      Js.Math.max_float(0.4, player.entity.velocity->Vec2.length /. player.entity.maxSpeed)
+    )
+  | None => 1.
+  }
+  // game.camera.rotation = Js.Math.sin(t->toFloat /. 1000.)
 
   game.scene->Container.setTransform(
     ~pivotX=game.camera.pivot.x,
