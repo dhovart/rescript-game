@@ -3,9 +3,18 @@ type t = {
   entity: Entity.t,
   polygon: Polygon.t,
   controllable: bool,
+  mutable behavior: option<Behavior.t>,
 }
 
-let make = (name, textureUrl, ~position=Vec2.make(0., 0.), ~controllable=false, ~polygon=?, ()) => {
+let make = (
+  name,
+  textureUrl,
+  ~position=Vec2.make(0., 0.),
+  ~acceleration=0.,
+  ~controllable=false,
+  ~polygon=?,
+  ()
+) => {
   let texture = PIXI.Texture.from(~source=#String(textureUrl), ())
   let texWidth = texture->PIXI.Texture.getWidth
   let texHeight = texture->PIXI.Texture.getHeight
@@ -28,13 +37,14 @@ let make = (name, textureUrl, ~position=Vec2.make(0., 0.), ~controllable=false, 
     Polygon.make([0., 0., texWidth, 0., texWidth, texHeight, 0., texHeight])
   }
 
-  let entity = Entity.make(~name, ~position, ())
+  let entity = Entity.make(~name, ~position, ~acceleration, ())
 
   {
     spriteContainer,
     entity,
     controllable,
     polygon,
+    behavior: None,
   }
 }
 
@@ -89,9 +99,20 @@ let receiveInput = (gameObject, direction: option<Input.direction>) => {
 }
 
 let update = (gameObject: t, input: option<Input.direction>) => {
-  gameObject.entity->Entity.update->ignore
+  let force = switch(gameObject.behavior) {
+  | Some(behavior) => {
+      gameObject.entity.velocity = behavior->Behavior.getSteering(gameObject.entity)
+  }
+  | None => ()
+  }
   if gameObject.controllable {
     receiveInput(gameObject, input)
   }
+  gameObject.entity->Entity.update->ignore
+  gameObject
+}
+
+let setBehavior = (gameObject, behavior) => {
+  gameObject.behavior = Some(behavior)
   gameObject
 }
