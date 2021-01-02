@@ -3,8 +3,14 @@ Super early stage
 
 My QuadTree implementation is adapted from this (nice!) intro to ReasonML: https://blog.dubenko.dev/reasonml-by-example/ 
 
-# TODO :
+TODO :
 
 - [x] create a Camera (& define how it should work)
 - [ ] check collisions using SAT
 - [ ] attach behaviors to game objects
+
+    - [x] basic logic
+    - [ ] construct more complex behaviors
+
+- [ ] refine less than optimal controls
+- [ ] graphics
