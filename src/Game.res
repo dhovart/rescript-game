@@ -59,13 +59,13 @@ let update = (game: t, (t, input)) => {
   | None => Vec2.make(0., 0.)
   }
 
-  game.camera.zoom = switch game.player {
-  | Some(player) => Js.Math.min_float(
-      1.4,
-      Js.Math.max_float(0.4, player.entity.velocity->Vec2.length /. player.entity.maxSpeed)
-    )
-  | None => 1.
-  }
+  // game.camera.zoom = switch game.player {
+  // | Some(player) => Js.Math.min_float(
+  //     1.4,
+  //     Js.Math.max_float(0.4, player.entity.velocity->Vec2.length /. player.entity.maxSpeed)
+  //   )
+  // | None => 1.
+  // }
   // game.camera.rotation = Js.Math.sin(t->toFloat /. 1000.)
 
   game.scene->Container.setTransform(

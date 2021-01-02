@@ -13,7 +13,7 @@ let bunnies = Belt.Array.makeBy(30, i => {
     j`lapin-$i`,
     "https://pixijs.io/examples/examples/assets/bunny.png",
     ~position=Vec2.make(Js.Math.random() *. 800., Js.Math.random() *. 600.),
-    ~acceleration=Js.Math.random(),
+    ~acceleration=Js.Math.random() *. 0.02,
     (),
   )
   let behavior = mod(i, 2) === 0 ?

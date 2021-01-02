@@ -99,11 +99,9 @@ let receiveInput = (gameObject, direction: option<Input.direction>) => {
 }
 
 let update = (gameObject: t, input: option<Input.direction>) => {
-  let force = switch(gameObject.behavior) {
-  | Some(behavior) => {
-      gameObject.entity.velocity = behavior->Behavior.getSteering(gameObject.entity)
-  }
-  | None => ()
+  gameObject.entity.steeringForce = switch(gameObject.behavior) {
+  | Some(behavior) => behavior->Behavior.getSteering(gameObject.entity)
+  | None => Vec2.make(0., 0.)
   }
   if gameObject.controllable {
     receiveInput(gameObject, input)

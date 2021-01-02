@@ -1,5 +1,6 @@
 type t = {
   mutable velocity: Vec2.t,
+  mutable steeringForce: Vec2.t,
   mutable position: Vec2.t,
   mutable rotation: float,
   maxSpeed: float,
@@ -10,6 +11,7 @@ type t = {
 let make = (
   ~name: string,
   ~velocity=Vec2.make(0., 0.),
+  ~steeringForce=Vec2.make(0., 0.),
   ~position=Vec2.make(0., 0.),
   ~maxSpeed=6.,
   ~acceleration=0.3,
@@ -18,6 +20,7 @@ let make = (
 ) => {
   name,
   velocity,
+  steeringForce,
   position,
   maxSpeed,
   acceleration,
@@ -26,6 +29,8 @@ let make = (
 
 let update = entity => {
   open Vec2
+  // FIXME - add weights for behaviors
+  entity.velocity = entity.velocity->add(entity.steeringForce->multiply(0.02))
   if (entity.velocity->length > entity.maxSpeed) {
     entity.velocity->normalize->multiply(entity.maxSpeed)->ignore
   }
