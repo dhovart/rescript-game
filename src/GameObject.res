@@ -13,6 +13,7 @@ let make = (
   textureUrl,
   ~position=Vec2.make(0., 0.),
   ~acceleration=0.,
+  ~maxSpeed=4.0,
   ~controllable=false,
   ~polygon=?,
   ~kind,
@@ -40,7 +41,7 @@ let make = (
     Polygon.make([0., 0., texWidth, 0., texWidth, texHeight, 0., texHeight])
   }
 
-  let entity = Entity.make(~name, ~position, ~acceleration, ~polygon, ())
+  let entity = Entity.make(~name, ~position, ~acceleration, ~polygon, ~maxSpeed, ())
   {
     spriteContainer,
     entity,
@@ -115,13 +116,13 @@ let defineBehaviors = (gameObject, playerRef: ref<option<t>>, tree, camera) => {
   | Player => []
   | Enemy =>
     [Behavior.SocialDistancing(gameObject.entity, tree, camera)]
-    ->Belt.Array.concat(
-      switch playerRef.contents {
-      | Some(player) => [Behavior.Seek(gameObject.entity, player.entity)]
-      | None => []
-      }
-    )
-  | _ => []
+  //   ->Belt.Array.concat(
+  //     switch playerRef.contents {
+  //     | Some(player) => [Behavior.Seek(gameObject.entity, player.entity)]
+  //     | None => []
+  //     }
+  //   )
+  // | _ => []
   })
 }
 

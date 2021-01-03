@@ -37,7 +37,7 @@ let setSteeringForce = (entity, steeringForce) => { ...entity, steeringForce }
 let update = entity => {
   // FIXME - add weights for behaviors
   let velocity = entity.velocity
-    ->Vec2.add(entity.steeringForce->Vec2.multiply(0.02))
+    ->Vec2.add(entity.steeringForce)
     ->Vec2.multiply(0.98)
     ->Vec2.limit(entity.maxSpeed)
   let rotation = Js.Math._PI /. 2. +. Js.Math.atan2(~y=velocity.y, ~x=velocity.x, ())

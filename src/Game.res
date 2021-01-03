@@ -63,7 +63,7 @@ let renderDebugGraphics = (game) => {
         game.debugGraphics
         ->Graphics.clear
         ->Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
-        ->Graphics.moveTo(~x=0., ~y=0.),
+        ->Graphics.moveTo(~x=0., ~y=0.)
       )
     )
   } else {

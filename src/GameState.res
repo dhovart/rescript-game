@@ -6,6 +6,7 @@ type t = {
   camera: Camera.t,
   objects: array<GameObject.t>,
   player: ref<option<GameObject.t>>,
+  zoomRef: ref<float>,
 }
 
 let make = () => {
@@ -13,6 +14,7 @@ let make = () => {
     objects: [],
     camera: Camera.make(),
     player: ref(None),
+    zoomRef: ref(0.)
 }
 
 let setObjects = (state, objects) => {...state, objects}
@@ -31,10 +33,15 @@ let updateCamera = (state, time) => {
       | None => Vec2.make(0., 0.)
     })
     ->Camera.setZoom(switch state.player.contents {
-    | Some(player) => Js.Math.min_float(
+    | Some(player) => {
+        let zoom = Js.Math.min_float(
         2.5,
-        Js.Math.max_float(0.8, player.entity.velocity->Vec2.length /. player.entity.maxSpeed *. 4.)
+        Js.Math.max_float(0.8, player.entity.velocity->Vec2.length /. player.entity.maxSpeed *. 2.)
       )
+      let zoom = Utils.lerp(state.zoomRef.contents, zoom, 0.01) 
+      state.zoomRef.contents = zoom
+      zoom
+    }
     | None => 1.
     })
     // ->Camera.setRotation(Js.Math.sin(time->toFloat /. 1000.))

@@ -6,9 +6,8 @@ type t = {
 let make = (position, radius) => {position, radius}
 
 let toScreenSpace = (circle, camera: Camera.t) => {
-  let position = circle.position->Vec2.substract(camera.pivot)
-    ->Vec2.transform(Matrix.makeScale(camera.zoom, camera.zoom)
-      ->Matrix.multiply(Matrix.makeRotate(camera.rotation)))
+  let position = circle.position->
+    ->Vec2.transform(~translation=camera.pivot, ~scale=camera.zoom, ())
 
   {
     position,

@@ -7,3 +7,4 @@ let filterByIndex = (xs, filter) =>
 let empty = xs => xs->length === 0
 let head = xs => xs[0]
 let tail = xs => xs->slice(~offset=1, ~len=xs->length)
+let lerp = (start, end, percent) => start +. percent *. (end -. start)

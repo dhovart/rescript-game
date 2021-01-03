@@ -40,12 +40,14 @@ let createNode = (bbox, quadrant, entity) => {
 }
 
 let rec insert = (tree: t, entity: Entity.t, camera: Camera.t) => {
-  let transformedEntityCenter = entity.position->Vec2.toScreenSpace(camera.pivot, camera.zoom, camera.rotation)
-  switch(tree.bbox->BBox.containsPoint(transformedEntityCenter)) {
+  let transformedEntityPosition = entity.position
+  ->Vec2.substract(camera.pivot)
+  ->Vec2.toScreenSpace(~zoom=camera.zoom, ~rotation=camera.rotation, ())
+  switch(tree.bbox->BBox.containsPoint(transformedEntityPosition)) {
   | true => {
     switch tree.entity {
     | Some(_) =>
-      let quadrant = tree.bbox->quadrantFromPoint(transformedEntityCenter)
+      let quadrant = tree.bbox->quadrantFromPoint(transformedEntityPosition)
       let child = getNode(tree, quadrant)
 
       switch child {

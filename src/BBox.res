@@ -91,7 +91,7 @@ let pointsToBBox = (points: array<Vec2.t>) => {
 
 let getRotatedBBoxBBox = (bbox, rotation) => {
   bbox->getPoints
-  ->Belt.Array.map(point => point->Vec2.transform(Matrix.makeRotate(rotation)))
+  ->Belt.Array.map(point => point->Vec2.transform(~rotation, ()))
   ->pointsToBBox
 }
 
@@ -101,6 +101,12 @@ let getCenter = (bbox) => {
 
 let toScreenSpace = (bbox, camera: Camera.t) => {
   bbox->getPoints
-  ->Belt.Array.map(point => point->Vec2.toScreenSpace(camera.pivot, camera.zoom, camera.rotation))
+  ->Belt.Array.map(point => point
+    ->Vec2.substract(camera.pivot)
+    ->Vec2.toScreenSpace(
+    ~zoom=camera.zoom,
+    ~rotation=camera.rotation,
+    ()
+  ))
   ->pointsToBBox
 }
