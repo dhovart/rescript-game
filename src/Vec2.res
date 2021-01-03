@@ -26,4 +26,9 @@ let limit = (vec2, maxLength) => {
     vec2
   } 
 }
+let toScreenSpace = (vec2, translation, zoom, rotation) => {
+  vec2->substract(translation)
+  ->transform(Matrix.makeScale(zoom, zoom)
+    ->Matrix.multiply(Matrix.makeRotate(rotation)))
+}
 let asPixiPoint = ({x, y}) => PIXI.ObservablePoint.create(~x, ~y, ~cb=() => (), ())

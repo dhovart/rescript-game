@@ -6,6 +6,7 @@ type t = {
   maxSpeed: float,
   acceleration: float,
   name: string,
+  polygon: Polygon.t,
 }
 
 let make = (
@@ -17,6 +18,7 @@ let make = (
   ~maxSpeed=6.,
   ~acceleration=0.3,
   ~rotation=0.0,
+  ~polygon=Polygon.make([]),
   (),
 ) => {
   name,
@@ -26,6 +28,7 @@ let make = (
   maxSpeed,
   acceleration,
   rotation,
+  polygon,
 }
 
 let setVelocity = (entity, velocity) => { ...entity, velocity }
@@ -45,4 +48,13 @@ let update = entity => {
     rotation,
     position,
   }
+}
+
+let getBBox = (entity, rotate) => {
+  let bbox = if rotate {
+    entity.polygon.bbox->BBox.getRotatedBBoxBBox(entity.rotation)
+  } else {
+    entity.polygon.bbox
+  }
+  bbox->BBox.setTopLeft(entity.position)
 }

@@ -40,15 +40,12 @@ let createNode = (bbox, quadrant, entity) => {
 }
 
 let rec insert = (tree: t, entity: Entity.t, camera: Camera.t) => {
-  let transformedEntityPosition = entity.position->Vec2.substract(camera.pivot)
-    ->Vec2.transform(Matrix.makeScale(camera.zoom, camera.zoom)
-      ->Matrix.multiply(Matrix.makeRotate(camera.rotation))
-  )
-  switch(tree.bbox->BBox.contains(transformedEntityPosition)) {
+  let transformedEntityCenter = entity.position->Vec2.toScreenSpace(camera.pivot, camera.zoom, camera.rotation)
+  switch(tree.bbox->BBox.containsPoint(transformedEntityCenter)) {
   | true => {
     switch tree.entity {
     | Some(_) =>
-      let quadrant = tree.bbox->quadrantFromPoint(transformedEntityPosition)
+      let quadrant = tree.bbox->quadrantFromPoint(transformedEntityCenter)
       let child = getNode(tree, quadrant)
 
       switch child {
@@ -62,51 +59,49 @@ let rec insert = (tree: t, entity: Entity.t, camera: Camera.t) => {
   }
 }
 
-let rec query = (tree, bbox, ~found=[], ()) => {
-  if !(bbox->intersects(tree.bbox)) {
+let getQuadrants = tree => [tree.ne, tree.nw, tree.se, tree.sw]
+
+let rec query = (tree, ~intersects, ~contains, ~found=[], ()) => {
+  if !(intersects(tree)) {
     found
   } else {
-    let fromNE = switch tree.ne {
-    | Some(ne) => query(ne, bbox, ~found, ())
+    open Belt.Array
+    let foundInQuadrants = tree->getQuadrants->reduce([], (acc, quadrant) =>
+      acc->concat(
+        switch quadrant {
+        | Some(quadrant) => quadrant->query(~intersects, ~contains, ~found, ())
+        | None => []
+        }
+      )
+    )
+    let foundInCurrentNode = switch tree.entity {
+    | Some(entity) => contains(entity) ? [entity] : []
     | None => []
     }
-    let fromNW = switch tree.nw {
-    | Some(nw) => query(nw, bbox, ~found, ())
-    | None => []
-    }
-    let fromSE = switch tree.se {
-    | Some(se) => query(se, bbox, ~found, ())
-    | None => []
-    }
-    let fromSW = switch tree.sw {
-    | Some(sw) => query(sw, bbox, ~found, ())
-    | None => []
-    }
-    let fromCurrentNode = switch tree.entity {
-    | Some(entity) => [entity]
-    | None => []
-    }
-    Belt.Array.concatMany([found, fromCurrentNode, fromNE, fromNW, fromSE, fromSW])
+    Belt.Array.concatMany([foundInCurrentNode, foundInQuadrants])
   }
 }
 
+let bboxQuery = (tree, bbox, camera) => tree->query(
+  ~intersects=tree => bbox->intersects(tree.bbox),
+  ~contains=entity => bbox->containsPoint(
+    entity->Entity.getBBox(false)
+    ->BBox.toScreenSpace(camera)
+    ->BBox.getCenter
+  )
+)
+
+let circleQuery = (tree, circle) => tree->query(
+  ~intersects=tree => false, // FIXME
+  ~contains=tree => false, // FIXME
+)
+
 let rec draw = (tree, graphics) => {
-  let graphics = switch tree.ne {
-  | Some(ne) => draw(ne, graphics)
-  | None => graphics
-  }
-  let graphics = switch tree.nw {
-  | Some(nw) => draw(nw, graphics)
-  | None => graphics
-  }
-  let graphics = switch tree.se {
-  | Some(se) => draw(se, graphics)
-  | None => graphics
-  }
-  let graphics = switch tree.sw {
-  | Some(sw) => draw(sw, graphics)
-  | None => graphics
-  }
+  open Belt.Array
+  let graphics = tree->getQuadrants->reduce(graphics, (acc, quadrant) => switch quadrant {
+  | Some(quadrant) => draw(quadrant, acc)
+  | None => acc
+  })
 
   let {topLeft, width, height} = tree.bbox
   let {x, y} = topLeft

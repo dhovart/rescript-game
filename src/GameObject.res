@@ -1,9 +1,11 @@
+type kind = Enemy | Player | Obstacle | Bullet
+
 type t = {
   spriteContainer: PIXI.Container.t,
   entity: Entity.t,
-  polygon: Polygon.t,
   controllable: bool,
-  behavior: option<Behavior.t>,
+  behaviors: array<Behavior.t>,
+  kind: kind,
 }
 
 let make = (
@@ -13,6 +15,7 @@ let make = (
   ~acceleration=0.,
   ~controllable=false,
   ~polygon=?,
+  ~kind,
   ()
 ) => {
   let texture = PIXI.Texture.from(~source=#String(textureUrl), ())
@@ -37,29 +40,28 @@ let make = (
     Polygon.make([0., 0., texWidth, 0., texWidth, texHeight, 0., texHeight])
   }
 
-  let entity = Entity.make(~name, ~position, ~acceleration, ())
-
+  let entity = Entity.make(~name, ~position, ~acceleration, ~polygon, ())
   {
     spriteContainer,
     entity,
     controllable,
-    polygon,
-    behavior: None,
+    behaviors: [],
+    kind
   }
 }
 
 let setEntity = (gameObject, entity) => {...gameObject, entity}
-let setBehavior = (gameObject, behavior) => {...gameObject, behavior: Some(behavior)}
+let setBehaviors = (gameObject, behaviors) => {...gameObject, behaviors}
 
 let appendDebugSprite = (gameObject: t, renderer: PIXI.Renderer.t) => {
-  let bbox = gameObject.polygon.bbox
+  let bbox = gameObject.entity.polygon.bbox
   let debugGraphics = {
     open PIXI.Graphics
     create()
     ->clear
     ->lineStyle(~color=0, ())
     ->beginFill(~color=0x3500FA, ~alpha=0.4, ())
-    ->drawPolygon(#Array(gameObject.polygon.points))
+    ->drawPolygon(#Array(gameObject.entity.polygon.points))
     ->endFill
   }
 
@@ -108,18 +110,52 @@ let receiveInput = (gameObject, direction: option<Input.direction>) => {
 
 let updateEntity = (gameObject) => gameObject->setEntity(gameObject.entity->Entity.update)
 
-let applyBehaviors = (gameObject) => {
-  gameObject->setEntity(gameObject.entity->Entity.setSteeringForce(
-    switch(gameObject.behavior) {
-    | Some(behavior) => behavior->Behavior.getSteering(gameObject.entity)
-    | None => Vec2.make(0., 0.)
-    })
-  )
+let defineBehaviors = (gameObject, playerRef: ref<option<t>>, tree, camera) => {
+  gameObject->setBehaviors(switch gameObject.kind {
+  | Player => []
+  | Enemy =>
+    [Behavior.SocialDistancing(gameObject.entity, tree, camera)]
+    ->Belt.Array.concat(
+      switch playerRef.contents {
+      | Some(player) => [Behavior.Seek(gameObject.entity, player.entity)]
+      | None => []
+      }
+    )
+  | _ => []
+  })
 }
 
-let update = (gameObject: t, input: option<Input.direction>) => {
- gameObject
+let applyBehaviors = (gameObject) => {
+  open Belt.Array
+  gameObject->setEntity(gameObject.entity->Entity.setSteeringForce(
+      gameObject.behaviors->reduce(Vec2.make(0.0, 0.0), (acc, behavior) =>
+        acc->Vec2.add(behavior->Behavior.getSteering(gameObject.entity))
+    )
+  ))
+}
+
+let update = (
+  gameObject,
+  input,
+  playerRef,
+  tree,
+  camera,
+) => {
+ let object = gameObject
+  ->defineBehaviors(playerRef, tree, camera)
   ->applyBehaviors
   ->receiveInput(input)
   ->updateEntity
+
+  // this was supposed to be a pure function, check if we can set the player ref differently
+  if gameObject.kind === Player {
+    switch playerRef.contents {
+    | Some(player) => if (player === gameObject) {
+      playerRef := Some(object)
+    }
+    | None => ()
+    }
+  }
+
+  object
 }

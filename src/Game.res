@@ -38,7 +38,7 @@ let make = () => {
     debug: true, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
     scene: Container.create(),
-    state: GameState.make()
+    state: GameState.make(),
   }
 }
 
@@ -73,7 +73,11 @@ let renderDebugGraphics = (game) => {
 
 let updateState = (game, time, input) => {
   game->setState(
-    game.state->GameState.update(time, input, getScreenDimensions())
+    game.state->GameState.update(
+      time,
+      input,
+      getScreenDimensions(),
+    )
   )
 }
 
