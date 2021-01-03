@@ -1,56 +1,65 @@
 type t = {
   velocity: Vec2.t,
-  steeringForce: Vec2.t,
+  acceleration: Vec2.t,
+  accelerationFactor: float,
   position: Vec2.t,
   rotation: float,
   maxSpeed: float,
-  acceleration: float,
+  maxSteeringForce: float,
   name: string,
   polygon: Polygon.t,
+  rotationRef: ref<float>
 }
 
 let make = (
   ~name: string,
   ~velocity=Vec2.make(0.,
   0.),
-  ~steeringForce=Vec2.make(0., 0.),
   ~position=Vec2.make(0., 0.),
   ~maxSpeed=6.,
-  ~acceleration=0.3,
+  ~acceleration=Vec2.make(0.9, 0.0),
+  ~accelerationFactor=0.3,
+  ~maxSteeringForce=0.5,
   ~rotation=0.0,
   ~polygon=Polygon.make([]),
   (),
 ) => {
   name,
   velocity,
-  steeringForce,
   position,
   maxSpeed,
   acceleration,
+  accelerationFactor,
+  maxSteeringForce,
   rotation,
   polygon,
+  rotationRef: ref(rotation)
 }
 
 let setVelocity = (entity, velocity) => { ...entity, velocity }
-let setSteeringForce = (entity, steeringForce) => { ...entity, steeringForce }
+let setAcceleration = (entity, acceleration) => { ...entity, acceleration }
+let applyForce = (entity, force) => entity->setAcceleration(entity.acceleration->Vec2.add(force))
 
 let update = entity => {
   // FIXME - add weights for behaviors
   let velocity = entity.velocity
-    ->Vec2.add(entity.steeringForce)
+    ->Vec2.add(entity.acceleration)
     ->Vec2.multiply(0.98)
     ->Vec2.limit(entity.maxSpeed)
-  let rotation = Js.Math._PI /. 2. +. Js.Math.atan2(~y=velocity.y, ~x=velocity.x, ())
+  let desiredRotation = Js.Math._PI /. 2. +. Js.Math.atan2(~y=velocity.y, ~x=velocity.x, ())
+  let rotation = Utils.lerp(entity.rotationRef.contents, desiredRotation, 0.2)
+  entity.rotationRef := rotation
   let position = entity.position->Vec2.add(velocity)
   {
     ...entity,
     velocity,
     rotation,
     position,
+    acceleration: Vec2.make(0., 0.)
   }
 }
 
-let getBBox = (entity, rotate) => {
+let getBBox = (entity, ~rotate=false, ()) => {
   let bbox = if rotate {
     entity.polygon.bbox->BBox.getRotatedBBoxBBox(entity.rotation)
   } else {

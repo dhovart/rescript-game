@@ -1,4 +1,3 @@
-open Belt.Int
 open Belt.Array
 
 type t = {
@@ -25,7 +24,7 @@ let setPlayer = (state, player) => {
   state
 }
 
-let updateCamera = (state, time) => {
+let updateCamera = (state, _time) => {
   // FIXME move me
   state->setCamera(state.camera
     ->Camera.setPivot(switch state.player.contents {

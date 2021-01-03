@@ -41,7 +41,14 @@ let make = (
     Polygon.make([0., 0., texWidth, 0., texWidth, texHeight, 0., texHeight])
   }
 
-  let entity = Entity.make(~name, ~position, ~acceleration, ~polygon, ~maxSpeed, ())
+  let entity = Entity.make(
+    ~name,
+    ~position,
+    ~accelerationFactor=acceleration,
+    ~polygon,
+    ~maxSpeed,
+    ())
+
   {
     spriteContainer,
     entity,
@@ -96,16 +103,16 @@ let receiveInput = (gameObject, direction: option<Input.direction>) => {
     gameObject
   } else {
     let {entity} = gameObject
-    let {x, y} = entity.velocity
     // FIXME: we should be able to set several directions at once 
-    let velocity: Vec2.t = switch direction {
-    | Some(UP) => {x, y: y -. entity.acceleration}
-    | Some(DOWN) => {x, y: y +. entity.acceleration}
-    | Some(LEFT) => {x: x -. entity.acceleration, y}
-    | Some(RIGHT) => {x: x +. entity.acceleration, y}
-    | _ => {x, y}
+    let acceleration: Vec2.t = switch direction {
+    | Some(UP) => Vec2.make(0., -.1.)
+    | Some(DOWN) => Vec2.make(0., 1.)
+    | Some(LEFT) => Vec2.make(-.1., 0.)
+    | Some(RIGHT) => Vec2.make(1., 0.)
+    | _ => {x: 0., y: 0.}
     }
-    gameObject->setEntity(entity->Entity.setVelocity(velocity))
+    gameObject->setEntity(
+      entity->Entity.setAcceleration(acceleration->Vec2.multiply(entity.accelerationFactor)))
   }
 }
 
@@ -115,20 +122,20 @@ let defineBehaviors = (gameObject, playerRef: ref<option<t>>, tree, camera) => {
   gameObject->setBehaviors(switch gameObject.kind {
   | Player => []
   | Enemy =>
-    [Behavior.SocialDistancing(gameObject.entity, tree, camera)]
-  //   ->Belt.Array.concat(
-  //     switch playerRef.contents {
-  //     | Some(player) => [Behavior.Seek(gameObject.entity, player.entity)]
-  //     | None => []
-  //     }
-  //   )
-  // | _ => []
+    [Behavior.SocialDistancing(gameObject.entity, tree, camera, 3.)]
+    ->Belt.Array.concat(
+      switch playerRef.contents {
+      | Some(player) => [Behavior.Seek(gameObject.entity, player.entity, 1.)]
+      | None => []
+      }
+    )
+  | _ => []
   })
 }
 
 let applyBehaviors = (gameObject) => {
   open Belt.Array
-  gameObject->setEntity(gameObject.entity->Entity.setSteeringForce(
+  gameObject->setEntity(gameObject.entity->Entity.applyForce(
       gameObject.behaviors->reduce(Vec2.make(0.0, 0.0), (acc, behavior) =>
         acc->Vec2.add(behavior->Behavior.getSteering(gameObject.entity))
     )

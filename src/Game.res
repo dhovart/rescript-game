@@ -5,9 +5,9 @@ open Belt.Int
 type t = {
   app: Application.t,
   debug: bool,
-  debugGraphics: Graphics.t,
   scene: Container.t,
   mutable state: GameState.t,
+  mutable debugGraphics: Graphics.t,
 }
 
 let getScreenDimensions = () => {
@@ -35,7 +35,7 @@ let make = () => {
   )
   {
     app,
-    debug: true, // FIXME load from config or env var
+    debug: false, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
     scene: Container.create(),
     state: GameState.make(),
@@ -43,7 +43,10 @@ let make = () => {
 }
 
 let getRenderer = game => game.app->Application.getRenderer
-let setDebugGraphics = (game, debugGraphics) => {...game, debugGraphics}
+let setDebugGraphics = (game, debugGraphics) => {
+  game.debugGraphics = debugGraphics
+  game
+}
 
 let updateScene = (game) => {
   game.scene->Container.setTransform(
@@ -66,8 +69,7 @@ let renderDebugGraphics = (game) => {
         ->Graphics.moveTo(~x=0., ~y=0.)
       )
     )
-  } else {
-    game
+    ->ignore
   }
 }
 

@@ -68,12 +68,21 @@ let intersects = (bbox, other) => {
   )
 }
 
+let getCenter = (bbox) => {
+  bbox.topLeft->Vec2.add(Vec2.make(bbox.width/.2., bbox.height/.2.))
+}
+
 let getPoints = (bbox) => [
   bbox.topLeft,
   bbox.topLeft->Vec2.add(Vec2.make(bbox.width, 0.)),
   bbox.topLeft->Vec2.add(Vec2.make(bbox.width, bbox.height)),
   bbox.topLeft->Vec2.add(Vec2.make(0., bbox.height)),
 ]
+
+let intersectsCircle = (bbox, circle: Circle.t) => {
+  bbox->containsPoint(circle.position) ||
+  bbox->getPoints->Belt.Array.reduce(false, (acc, point) => acc || circle->Circle.containsPoint(point))
+}
 
 let pointsToBBox = (points: array<Vec2.t>) => {
   open Belt.Array
@@ -93,10 +102,6 @@ let getRotatedBBoxBBox = (bbox, rotation) => {
   bbox->getPoints
   ->Belt.Array.map(point => point->Vec2.transform(~rotation, ()))
   ->pointsToBBox
-}
-
-let getCenter = (bbox) => {
-  bbox.topLeft->Vec2.add(Vec2.make(bbox.width/.2., bbox.height/.2.))
 }
 
 let toScreenSpace = (bbox, camera: Camera.t) => {
