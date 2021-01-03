@@ -1,22 +1,20 @@
-type kind = Enemy | Player | Obstacle | Bullet
 
 type t = {
   spriteContainer: PIXI.Container.t,
   entity: Entity.t,
   controllable: bool,
   behaviors: array<Behavior.t>,
-  kind: kind,
 }
 
 let make = (
   name,
   textureUrl,
+  ~kind,
   ~position=Vec2.make(0., 0.),
   ~acceleration=0.,
   ~maxSpeed=4.0,
   ~controllable=false,
   ~polygon=?,
-  ~kind,
   ()
 ) => {
   let texture = PIXI.Texture.from(~source=#String(textureUrl), ())
@@ -47,6 +45,7 @@ let make = (
     ~accelerationFactor=acceleration,
     ~polygon,
     ~maxSpeed,
+    ~kind,
     ())
 
   {
@@ -54,7 +53,6 @@ let make = (
     entity,
     controllable,
     behaviors: [],
-    kind
   }
 }
 
@@ -119,10 +117,10 @@ let receiveInput = (gameObject, direction: option<Input.direction>) => {
 let updateEntity = (gameObject) => gameObject->setEntity(gameObject.entity->Entity.update)
 
 let defineBehaviors = (gameObject, playerRef: ref<option<t>>, tree, camera) => {
-  gameObject->setBehaviors(switch gameObject.kind {
+  gameObject->setBehaviors(switch gameObject.entity.kind {
   | Player => []
   | Enemy =>
-    [Behavior.SocialDistancing(gameObject.entity, tree, camera, 3.)]
+    [Behavior.SocialDistancing(gameObject.entity, tree, camera, 10.)]
     ->Belt.Array.concat(
       switch playerRef.contents {
       | Some(player) => [Behavior.Seek(gameObject.entity, player.entity, 1.)]
@@ -156,7 +154,7 @@ let update = (
   ->updateEntity
 
   // this was supposed to be a pure function, check if we can set the player ref differently
-  if gameObject.kind === Player {
+  if gameObject.entity.kind === Entity.Player {
     switch playerRef.contents {
     | Some(player) => if (player === gameObject) {
       playerRef := Some(object)

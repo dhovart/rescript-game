@@ -4,7 +4,7 @@ let getSteering = (entity: Entity.t, tree, camera, weight) => {
   let neighbours = tree->QuadTree.circleQuery(Circle.make(entity.position, 200.), camera, ())
   neighbours
   ->reduce(Vec2.make(0., 0.), (acc, neighbour) => {
-    if entity === neighbour {
+    if entity === neighbour || entity.kind === Entity.Player {
       acc
     } else {
       acc->Vec2.add({
