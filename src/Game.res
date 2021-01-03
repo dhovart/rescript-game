@@ -35,7 +35,7 @@ let make = () => {
   )
   {
     app,
-    debug: false, // FIXME load from config or env var
+    debug: true, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
     scene: Container.create(),
     state: GameState.make(),

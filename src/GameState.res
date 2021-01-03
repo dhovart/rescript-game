@@ -50,7 +50,7 @@ let updateCamera = (state, _time) => {
 let createTree = (state, screenRect) => {
   let topLeft = screenRect->Vec2.multiply(-.0.5)
   state->setTree(
-    QuadTree.make(~bbox=BBox.make(~topLeft=topLeft, ~width=screenRect.x, ~height=screenRect.y, ()), ())
+    QuadTree.make(~bbox=BBox.make(~topLeft=topLeft, ~width=screenRect.x, ~height=screenRect.y, ())->BBox.scale(1.5), ())
   )
 }
 

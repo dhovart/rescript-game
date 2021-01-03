@@ -104,6 +104,12 @@ let getRotatedBBoxBBox = (bbox, rotation) => {
   ->pointsToBBox
 }
 
+let scale = (bbox, scale) => 
+  bbox->getPoints
+  ->Belt.Array.map(point => point->Vec2.transform(~scale,()))
+  ->pointsToBBox
+
+
 let toScreenSpace = (bbox, camera: Camera.t) => {
   bbox->getPoints
   ->Belt.Array.map(point => point
