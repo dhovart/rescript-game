@@ -1,13 +1,13 @@
 type t = {x: float, y: float}
 
 let make = (x, y) => {x: x, y: y}
-let add = ({x, y}, {x: u, y: v}) => {x: x +. u, y: y +. v}
-let substract = ({x, y}, {x: u, y: v}) => {x: x -. u, y: y -. v}
-let dist = ({x, y}, {x: u, y: v}) => {x: Js.Math.abs_float(x -. u), y: Js.Math.abs_float(y -. v)}
-let multiply = ({x, y}, z) => {x: x *. z, y: y *. z}
-let divide = ({x, y}, z) => {x: x /. z, y: y /. z}
-let length = ({x, y}) => Js.Math.sqrt(x *. x +. y *. y)
-let normalize = vec2 => divide(vec2, length(vec2))
+let add = (vec1, vec2) => {x: vec1.x +. vec2.x, y: vec1.y +. vec2.y}
+let substract = (vec1, vec2) => {x: vec1.x -. vec2.x, y: vec1.y -. vec2.y}
+let multiply = (vec, x) => {x: vec.x *. x, y: vec.y *. x}
+let divide = (vec, x) => {x: vec.x /. x, y: vec.y /. x}
+let length = vec => Js.Math.sqrt(vec.x *. vec.x +. vec.y *. vec.y)
+let normalize = vec => divide(vec, length(vec))
+let dot = (vec1, vec2) => vec1.x *. vec2.x +. vec1.y *. vec2.y
 let transform = (vec2: t, ~translation=make(0., 0.), ~scale=1., ~rotation=0., ()) => {
   open PIXI
   let mat = Matrix.create(~a=vec2.x +. translation.x, ~b=vec2.y +. translation.x, ())
@@ -25,4 +25,5 @@ let limit = (vec2, maxLength) => {
 let toScreenSpace = (vec2, ~zoom=1., ~rotation=0., ()) => {
   vec2->transform(~scale=zoom, ~rotation, ())
 }
+let angle = vec => Js.Math.atan2(~y=vec.y, ~x=vec.x, ())
 let asPixiPoint = ({x, y}) => PIXI.ObservablePoint.create(~x, ~y, ~cb=() => (), ())

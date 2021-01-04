@@ -47,18 +47,18 @@ let updateCamera = (state, _time) => {
   )
 }
 
-let createTree = (state, screenRect) => {
-  let topLeft = screenRect->Vec2.multiply(-.0.5)
+let createTree = (state, screenSize) => {
+  let topLeft = screenSize->Vec2.multiply(-.0.5)
   state->setTree(
-    QuadTree.make(~bbox=BBox.make(~topLeft=topLeft, ~width=screenRect.x, ~height=screenRect.y, ())->BBox.scale(1.5), ())
+    QuadTree.make(~bbox=BBox.make(~topLeft=topLeft, ~width=screenSize.x, ~height=screenSize.y, ())->BBox.scale(1.5), ())
   )
 }
 
 let insertObjectsIntoTree = (state) =>
   state.objects->reduce(state.tree, (tree, object) => tree->QuadTree.insert(object.entity, state.camera))
 
-let updateQuadTree = (state, screenRect) =>
-  state->setTree(state->createTree(screenRect)->insertObjectsIntoTree)
+let updateQuadTree = (state, screenSize) =>
+  state->setTree(state->createTree(screenSize)->insertObjectsIntoTree)
 
 let updateGameObjects = (state, input) => {
   open GameObject
@@ -67,9 +67,9 @@ let updateGameObjects = (state, input) => {
   }))
 }
 
-let update = (state, time, input, screenRect) => {
+let update = (state, time, input, screenSize) => {
   state
   ->updateCamera(time)
-  ->updateQuadTree(screenRect)
+  ->updateQuadTree(screenSize)
   ->updateGameObjects(input)
 }

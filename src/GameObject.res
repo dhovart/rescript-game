@@ -15,6 +15,7 @@ let make = (
   ~maxSpeed=4.0,
   ~controllable=false,
   ~polygon=?,
+  ~rotationFactor=1.,
   ()
 ) => {
   let texture = PIXI.Texture.from(~source=#String(textureUrl), ())
@@ -43,6 +44,7 @@ let make = (
     ~name,
     ~position,
     ~accelerationFactor=acceleration,
+    ~rotationFactor,
     ~polygon,
     ~maxSpeed,
     ~kind,
@@ -120,10 +122,12 @@ let defineBehaviors = (gameObject, playerRef: ref<option<t>>, tree, camera) => {
   gameObject->setBehaviors(switch gameObject.entity.kind {
   | Player => []
   | Enemy =>
-    [Behavior.SocialDistancing(gameObject.entity, tree, camera, 10.)]
+    [Behavior.SocialDistancing(gameObject.entity, tree, camera, 1.)]
     ->Belt.Array.concat(
       switch playerRef.contents {
-      | Some(player) => [Behavior.Seek(gameObject.entity, player.entity, 1.)]
+      | Some(player) => [
+          Behavior.CowardlySeek(gameObject.entity, player.entity, 7.),
+        ]
       | None => []
       }
     )
