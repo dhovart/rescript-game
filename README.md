@@ -12,5 +12,5 @@ TODO :
     - [x] basic logic
     - [ ] construct more complex behaviors
 
-- [ ] refine less than optimal controls
+- [x] refine less than optimal controls
 - [ ] graphics

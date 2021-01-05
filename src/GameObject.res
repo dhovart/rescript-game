@@ -98,19 +98,20 @@ let render = (gameObject: t) => {
   gameObject
 }
 
-let receiveInput = (gameObject, direction: option<Input.direction>) => {
+let receiveInput = (gameObject, direction: Input.direction) => {
   if (!gameObject.controllable) {
     gameObject
   } else {
     let {entity} = gameObject
-    // FIXME: we should be able to set several directions at once 
-    let acceleration: Vec2.t = switch direction {
+    let acceleration: Vec2.t = switch direction.y {
     | Some(UP) => Vec2.make(0., -.1.)
     | Some(DOWN) => Vec2.make(0., 1.)
+    | _ => {x: 0., y: 0.}
+    }->Vec2.add(switch direction.x {
     | Some(LEFT) => Vec2.make(-.1., 0.)
     | Some(RIGHT) => Vec2.make(1., 0.)
     | _ => {x: 0., y: 0.}
-    }
+    })
     gameObject->setEntity(
       entity->Entity.setAcceleration(acceleration->Vec2.multiply(entity.accelerationFactor)))
   }
@@ -122,7 +123,7 @@ let defineBehaviors = (gameObject, playerRef: ref<option<t>>, tree, camera) => {
   gameObject->setBehaviors(switch gameObject.entity.kind {
   | Player => []
   | Enemy =>
-    [Behavior.SocialDistancing(gameObject.entity, tree, camera, 1.)]
+    [Behavior.SocialDistancing(gameObject.entity, tree, camera, 9.)]
     ->Belt.Array.concat(
       switch playerRef.contents {
       | Some(player) => [

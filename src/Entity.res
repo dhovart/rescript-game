@@ -46,7 +46,6 @@ let setAcceleration = (entity, acceleration) => { ...entity, acceleration }
 let applyForce = (entity, force) => entity->setAcceleration(entity.acceleration->Vec2.add(force))
 
 let update = entity => {
-  // FIXME - add weights for behaviors
   let velocity = entity.velocity
     ->Vec2.add(entity.acceleration)
     ->Vec2.multiply(0.98)

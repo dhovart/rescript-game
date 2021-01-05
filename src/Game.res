@@ -122,7 +122,10 @@ let init = game => {
   let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())
   Rx.combineLatest2(
     ticker |> Rx.Operators.startWith([0]),
-    Input.playerDirection |> Rx.Operators.startWith([None]),
+    Input.playerDirection |> Rx.Operators.startWith([{
+      let initialDirection: Input.direction = {x: None, y: None}
+      initialDirection
+    }]),
   )
   |> Rx.Observable.subscribe(~next=game->update)
   |> ignore
