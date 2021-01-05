@@ -7,8 +7,11 @@ let make = (position, radius) => {position, radius}
 
 let toScreenSpace = (circle, camera: Camera.t) => {
   let position = circle.position
-    ->Vec2.substract(camera.pivot)
-    ->Vec2.toScreenSpace(~zoom=camera.zoom, ())
+    ->Vec2.toScreenSpace(
+      ~rotation=camera.rotation,
+      ~pivot=camera.pivot,
+      ~zoom=camera.zoom,
+      ())
   {
     position,
     radius: circle.radius *. camera.zoom,

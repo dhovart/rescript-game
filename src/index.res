@@ -17,9 +17,10 @@ let bunnies = Belt.Array.makeBy(100, i => GameObject.make(
     j`lapin-$i`,
     "https://pixijs.io/examples/examples/assets/bunny.png",
     ~position=Vec2.make(-.worldSize/.2. +. Js.Math.random() *. worldSize, -.worldSize/.2. +. Js.Math.random() *. worldSize),
-    ~acceleration=0.1,
+    ~acceleration=0.3,
+    ~maxSpeed=8.0,
     ~kind=Entity.Enemy,
-    ~velocityFactor=0.2,
+    ~velocityFactor=0.4,
     (),
   )
 )

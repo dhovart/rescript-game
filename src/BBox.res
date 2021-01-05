@@ -113,11 +113,11 @@ let scale = (bbox, scale) =>
 let toScreenSpace = (bbox, camera: Camera.t) => {
   bbox->getPoints
   ->Belt.Array.map(point => point
-    ->Vec2.substract(camera.pivot)
     ->Vec2.toScreenSpace(
-    ~zoom=camera.zoom,
-    ~rotation=camera.rotation,
-    ()
+      ~pivot=camera.pivot,
+      ~zoom=camera.zoom,
+      ~rotation=camera.rotation,
+      ()
   ))
   ->pointsToBBox
 }

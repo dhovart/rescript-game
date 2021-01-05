@@ -8,6 +8,7 @@ type t = {
   scene: Container.t,
   mutable state: GameState.t,
   mutable debugGraphics: Graphics.t,
+  loader: Loader.t,
 }
 
 let getScreenDimensions = () => {
@@ -39,6 +40,7 @@ let make = () => {
     debugGraphics: Graphics.create(),
     scene: Container.create(),
     state: GameState.make(),
+    loader: Loader.create(~baseUrl="/", ()),
   }
 }
 
@@ -129,7 +131,19 @@ let init = game => {
   )
   |> Rx.Observable.subscribe(~next=game->update)
   |> ignore
+
+  open Loader
+  game.loader->add(#Name("src/glsl/blur.frag"), ())->load(~cb=(_, _) => {
+    Js.log("foo")
+  }, ())->ignore
 }
+// function finished()
+// 	{
+// 	var vert = PIXI.loader.resources["vert.txt"].data;
+// 	var frag = PIXI.loader.resources["frag.txt"].data
+// 	var myfilter = new PIXI.Filter(vert, frag);
+// 	}
+// }
 
 // FIXME move me
 let appendGameObjectDebugSprite = (game, gameObject) => {

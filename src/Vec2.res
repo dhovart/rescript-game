@@ -13,7 +13,7 @@ let dot = (vec1, vec2) => vec1.x *. vec2.x +. vec1.y *. vec2.y
 let lerp = (vec1, vec2, percent) => vec1->zipWith(vec2, (start, end) => Utils.lerp(start, end, percent))
 let transform = (vec: t, ~translation=make(0., 0.), ~scale=1., ~rotation=0., ()) => {
   open PIXI
-  let mat = Matrix.create(~a=vec.x +. translation.x, ~b=vec.y +. translation.x, ())
+  let mat = Matrix.create(~a=vec.x +. translation.x, ~b=vec.y +. translation.y, ())
   ->Matrix.scale(~x=scale, ~y=scale)
   ->Matrix.rotate(~angle=rotation)
   {x: mat->Matrix.getA, y: mat->Matrix.getB}
@@ -25,8 +25,8 @@ let limit = (vec, maxLength) => {
     vec
   }
 }
-let toScreenSpace = (vec, ~zoom=1., ~rotation=0., ()) => {
-  vec->transform(~scale=zoom, ~rotation, ())
+let toScreenSpace = (vec, ~pivot=make(0., 0.), ~zoom=1., ~rotation=0., ()) => {
+  vec->>transform(~translation=pivot->multiply(-1.), ~scale=zoom, ~rotation, ())
 }
 let angle = vec => Js.Math.atan2(~y=vec.y, ~x=vec.x, ())
 let asPixiPoint = ({x, y}) => PIXI.ObservablePoint.create(~x, ~y, ~cb=() => (), ())
