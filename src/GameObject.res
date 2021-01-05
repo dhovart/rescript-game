@@ -16,6 +16,7 @@ let make = (
   ~controllable=false,
   ~polygon=?,
   ~rotationFactor=1.,
+  ~velocityFactor=1.,
   ()
 ) => {
   let texture = PIXI.Texture.from(~source=#String(textureUrl), ())
@@ -45,6 +46,7 @@ let make = (
     ~position,
     ~accelerationFactor=acceleration,
     ~rotationFactor,
+    ~velocityFactor,
     ~polygon,
     ~maxSpeed,
     ~kind,

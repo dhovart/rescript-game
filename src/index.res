@@ -19,7 +19,7 @@ let bunnies = Belt.Array.makeBy(100, i => GameObject.make(
     ~position=Vec2.make(-.worldSize/.2. +. Js.Math.random() *. worldSize, -.worldSize/.2. +. Js.Math.random() *. worldSize),
     ~acceleration=0.1,
     ~kind=Entity.Enemy,
-    ~rotationFactor=0.5,
+    ~velocityFactor=0.2,
     (),
   )
 )

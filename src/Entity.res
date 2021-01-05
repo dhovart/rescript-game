@@ -12,6 +12,7 @@ type t = {
   polygon: Polygon.t,
   kind: kind,
   rotationFactor: float,
+  velocityFactor: float,
 }
 
 let make = (
@@ -26,11 +27,13 @@ let make = (
   ~rotation=0.0,
   ~polygon=Polygon.make([]),
   ~rotationFactor=1.,
+  ~velocityFactor=1.,
   (),
 ) => {
   name,
   kind,
   velocity,
+  velocityFactor,
   position,
   maxSpeed,
   acceleration,
@@ -46,10 +49,11 @@ let setAcceleration = (entity, acceleration) => { ...entity, acceleration }
 let applyForce = (entity, force) => entity->setAcceleration(entity.acceleration->Vec2.add(force))
 
 let update = entity => {
-  let velocity = entity.velocity
+  let desiredVelocity = entity.velocity
     ->Vec2.add(entity.acceleration)
     ->Vec2.multiply(0.98)
     ->Vec2.limit(entity.maxSpeed)
+  let velocity = entity.velocity->Vec2.lerp(desiredVelocity, entity.velocityFactor)
   let desiredRotation = Js.Math._PI /. 2. +. Js.Math.atan2(~y=velocity.y, ~x=velocity.x, ())
   let rotation = desiredRotation
   // let rotation = Utils.lerp(entity.rotation, desiredRotation, entity.rotationFactor)
