@@ -36,7 +36,7 @@ let make = () => {
   )
   {
     app,
-    debug: true, // FIXME load from config or env var
+    debug: false, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
     scene: Container.create(),
     state: GameState.make(),
@@ -51,13 +51,21 @@ let setDebugGraphics = (game, debugGraphics) => {
 }
 
 let updateScene = (game) => {
+  let filters = Js.Nullable.return(switch game.state.player.contents {
+    | None => []
+    | Some(player) => {
+      let blurVelocity = player.entity.velocity->Vec2.multiply(-0.6)
+      [MotionBlurFilter.create(#Point(PIXI.Point.create(~x=blurVelocity.x, ~y=blurVelocity.y, ())), ~kernelSize=5, ())]
+    }
+  })
+
   game.scene->Container.setTransform(
     ~pivotX=game.state.camera.pivot.x,
     ~pivotY=game.state.camera.pivot.y,
     ~scaleX=game.state.camera.zoom,
     ~scaleY=game.state.camera.zoom,
-    ~rotation=game.state.camera.rotation,
-  ())->ignore
+      ~rotation=game.state.camera.rotation,
+  ())->DisplayObject.setFilters(filters)->ignore
   game
 }
 
@@ -93,6 +101,19 @@ let update = (game: t, (t, input)) => {
   ->ignore
 }
 
+let start = game => {
+  let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())
+  Rx.combineLatest2(
+    ticker |> Rx.Operators.startWith([0]),
+    Input.playerDirection |> Rx.Operators.startWith([{
+      let initialDirection: Input.direction = {x: None, y: None}
+      initialDirection
+    }]),
+  )
+  |> Rx.Observable.subscribe(~next=game->update)
+  |> ignore
+}
+
 let init = game => {
   game.app->Application.setResizeTo(#Window(Webapi.Dom.window))
 
@@ -121,29 +142,14 @@ let init = game => {
   if game.debug {
     game.app->Application.getStage->Container.addChild(game.debugGraphics)->ignore
   }
-  let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())
-  Rx.combineLatest2(
-    ticker |> Rx.Operators.startWith([0]),
-    Input.playerDirection |> Rx.Operators.startWith([{
-      let initialDirection: Input.direction = {x: None, y: None}
-      initialDirection
-    }]),
-  )
-  |> Rx.Observable.subscribe(~next=game->update)
-  |> ignore
 
-  open Loader
-  game.loader->add(#Name("src/glsl/blur.frag"), ())->load(~cb=(_, _) => {
-    Js.log("foo")
-  }, ())->ignore
+  // open Loader
+  // game.loader->add(#Name("blur.frag"), ())->load(~cb=(_, _) => {
+  //   game->start
+  // }, ())->ignore
+
+  game->start
 }
-// function finished()
-// 	{
-// 	var vert = PIXI.loader.resources["vert.txt"].data;
-// 	var frag = PIXI.loader.resources["frag.txt"].data
-// 	var myfilter = new PIXI.Filter(vert, frag);
-// 	}
-// }
 
 // FIXME move me
 let appendGameObjectDebugSprite = (game, gameObject) => {
@@ -158,7 +164,7 @@ let appendObject = (game, gameObject: GameObject.t) => {
   game->setState(
     game.state->GameState.setObjects(game.state.objects->concat([gameObject]))
   )
-  ->appendGameObjectDebugSprite(gameObject)
+  // ->appendGameObjectDebugSprite(gameObject)
 }
 
 let appendObjects = (game, gameObjects) => {
