@@ -48,7 +48,7 @@ let make = () => {
   let renderTexture = RenderTexture.create(~baseRenderTexture=brt, ())
   {
     app,
-    debug: true, // FIXME load from config or env var
+    debug: false, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
     scene: Container.create(),
     state: GameState.make(),
@@ -96,8 +96,13 @@ let renderScene = (game) => {
   let filters = Js.Nullable.return(switch game.state.player.contents {
     | None => []
     | Some(player) => {
-      let blurVelocity = player.entity.velocity->Vec2.multiply(-0.6)
-      [MotionBlurFilter.create(#Point(PIXI.Point.create(~x=blurVelocity.x, ~y=blurVelocity.y, ())), ~kernelSize=5, ())]
+      let zoomCenter = getScreenCenter()->Vec2.add(player.entity.velocity->Vec2.multiply(5.))
+      let blurStrength = player.entity.velocity->Vec2.length *. 0.03
+      [ZoomBlurFilter.create(~options=ZoomBlurFilter.createOptions(
+        ~center=Point.create(~x=zoomCenter.x, ~y=zoomCenter.y, ()),
+        ~strength=blurStrength,
+        ()
+      ))]
     }
   })
 
