@@ -24,9 +24,14 @@ let setPlayer = (state, player) => {
   state
 }
 
-let updateCamera = (state, _time) => {
+let updateCamera = (state, time, screenSize) => {
+
+  let shakeCamera = false
+  let shakeFactor = Js.Math.sin(time->Belt.Int.toFloat *. 1000.) *. 0.09
+
   // FIXME move me
   state->setCamera(state.camera
+    ->Camera.setTranslation(screenSize->Vec2.divide(2.))
     ->Camera.setPivot(switch state.player.contents {
       | Some(player) => player.entity.position
       | None => Vec2.make(0., 0.)
@@ -43,7 +48,7 @@ let updateCamera = (state, _time) => {
     }
     | None => 1.
     })
-    // ->Camera.setRotation(Js.Math.sin(time->toFloat /. 1000.))
+    ->Camera.setRotation(shakeCamera ? shakeFactor : 0.)
   )
 }
 
@@ -69,7 +74,7 @@ let updateGameObjects = (state, input) => {
 
 let update = (state, time, input, screenSize) => {
   state
-  ->updateCamera(time)
+  ->updateCamera(time, screenSize)
   ->updateQuadTree(screenSize)
   ->updateGameObjects(input)
 }

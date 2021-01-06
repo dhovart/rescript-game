@@ -5,10 +5,15 @@ open Belt.Int
 type t = {
   app: Application.t,
   debug: bool,
-  scene: Container.t,
   mutable state: GameState.t,
   mutable debugGraphics: Graphics.t,
   loader: Loader.t,
+  /* THe rendered scene */
+  scene: Container.t,
+  /* THe texture we render the scene to */
+  renderTexture: RenderTexture.t,
+  /* The sprite with the scene texture applied */
+  mainSprite: Sprite.t,
 }
 
 let getScreenDimensions = () => {
@@ -34,13 +39,22 @@ let make = () => {
     ),
     (),
   )
+
+  let size = getScreenDimensions()
+  let brt = BaseRenderTexture.create(
+    ~options=BaseRenderTexture.createOptions(~width=size.x, ~height=size.y, ()),
+    (),
+  )
+  let renderTexture = RenderTexture.create(~baseRenderTexture=brt, ())
   {
     app,
-    debug: false, // FIXME load from config or env var
+    debug: true, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
     scene: Container.create(),
     state: GameState.make(),
     loader: Loader.create(~baseUrl="/", ()),
+    renderTexture,
+    mainSprite: Sprite.create(renderTexture->Obj.magic),
   }
 }
 
@@ -51,21 +65,16 @@ let setDebugGraphics = (game, debugGraphics) => {
 }
 
 let updateScene = (game) => {
-  let filters = Js.Nullable.return(switch game.state.player.contents {
-    | None => []
-    | Some(player) => {
-      let blurVelocity = player.entity.velocity->Vec2.multiply(-0.6)
-      [MotionBlurFilter.create(#Point(PIXI.Point.create(~x=blurVelocity.x, ~y=blurVelocity.y, ())), ~kernelSize=5, ())]
-    }
-  })
-
   game.scene->Container.setTransform(
+    ~x=game.state.camera.translation.x,
+    ~y=game.state.camera.translation.y,
     ~pivotX=game.state.camera.pivot.x,
     ~pivotY=game.state.camera.pivot.y,
     ~scaleX=game.state.camera.zoom,
     ~scaleY=game.state.camera.zoom,
-      ~rotation=game.state.camera.rotation,
-  ())->DisplayObject.setFilters(filters)->ignore
+    ~rotation=game.state.camera.rotation,
+  ())->ignore
+
   game
 }
 
@@ -83,6 +92,26 @@ let renderDebugGraphics = (game) => {
   }
 }
 
+let renderScene = (game) => {
+  let filters = Js.Nullable.return(switch game.state.player.contents {
+    | None => []
+    | Some(player) => {
+      let blurVelocity = player.entity.velocity->Vec2.multiply(-0.6)
+      [MotionBlurFilter.create(#Point(PIXI.Point.create(~x=blurVelocity.x, ~y=blurVelocity.y, ())), ~kernelSize=5, ())]
+    }
+  })
+
+  game->getRenderer->PIXI.Renderer.render(
+    ~displayObject=game.scene->Obj.magic,
+    ~renderTexture=game.renderTexture->Obj.magic,
+    (),
+  )
+
+  game.mainSprite->DisplayObject.setFilters(filters)->ignore
+
+  game
+}
+
 let updateState = (game, time, input) => {
   game->setState(
     game.state->GameState.update(
@@ -97,6 +126,7 @@ let update = (game: t, (t, input)) => {
   game
   ->updateState(t, input)
   ->updateScene
+  ->renderScene
   ->renderDebugGraphics
   ->ignore
 }
@@ -130,24 +160,21 @@ let init = game => {
   )
   ->ignore
 
-  game.app->Application.getStage->Container.addChild(game.scene)->ignore
+  game.app->Application.getStage->Container.addChild(game.mainSprite)->ignore
 
-  let center = getScreenCenter()
-  game.app->Application.getStage->Container.setTransform(
-      ~x=center.x,
-      ~y=center.y,
-      ())
-  ->ignore
+  let size = getScreenDimensions()
+
+  game.mainSprite->Sprite.setWidth(size.x)
+  game.mainSprite->Sprite.setHeight(size.y)
 
   if game.debug {
     game.app->Application.getStage->Container.addChild(game.debugGraphics)->ignore
+    game.debugGraphics->Graphics.setTransform(
+      ~x=size.x /. 2.,
+      ~y=size.y /. 2.,
+      ()
+    )->ignore
   }
-
-  // open Loader
-  // game.loader->add(#Name("blur.frag"), ())->load(~cb=(_, _) => {
-  //   game->start
-  // }, ())->ignore
-
   game->start
 }
 
