@@ -8,3 +8,6 @@ let empty = xs => xs->length === 0
 let head = xs => xs[0]
 let tail = xs => xs->slice(~offset=1, ~len=xs->length)
 let lerp = (start, end, percent) => start +. percent *. (end -. start)
+let pairs = xs => xs->reduceWithIndex([], (acc, curr, i) => {
+  acc->concat(mod(i, 2) == 0 ? [] : [[xs->getExn(i-1), curr]])
+})

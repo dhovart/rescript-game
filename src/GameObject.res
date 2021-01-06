@@ -63,33 +63,14 @@ let make = (
 let setEntity = (gameObject, entity) => {...gameObject, entity}
 let setBehaviors = (gameObject, behaviors) => {...gameObject, behaviors}
 
-let appendDebugSprite = (gameObject: t, renderer: PIXI.Renderer.t) => {
+let appendDebugSprite = (gameObject: t) => {
   let bbox = gameObject.entity.polygon.bbox
-  let debugGraphics = {
-    open PIXI.Graphics
-    create()
-    ->clear
-    ->lineStyle(~color=0, ())
-    ->beginFill(~color=0x3500FA, ~alpha=0.4, ())
-    ->drawPolygon(#Array(gameObject.entity.polygon.points))
-    ->endFill
-  }
-
-  let brt = PIXI.BaseRenderTexture.create(
-    ~options=PIXI.BaseRenderTexture.createOptions(~width=bbox.width, ~height=bbox.height, ()),
-    (),
+  let debugGraphics = PIXI.Graphics.create()->PIXI.Graphics.setTransform(
+    ~x=bbox.width *. -0.5,
+    ~y=bbox.height *. -0.5, ()
   )
-  let texture = PIXI.RenderTexture.create(~baseRenderTexture=brt, ())
-
-  renderer->PIXI.Renderer.render(
-    ~displayObject=debugGraphics->Obj.magic,
-    ~renderTexture=texture->Obj.magic,
-    (),
-  )
-
-  let sprite = PIXI.Sprite.create(texture->Obj.magic)
-  sprite->PIXI.Sprite.setAnchor(gameObject.spriteContainer->PIXI.Container.getPivot)
-  gameObject.spriteContainer->PIXI.Container.addChild(sprite)->ignore
+  let debugGraphics = gameObject.entity.polygon->Polygon.draw(debugGraphics->Obj.magic)
+  gameObject.spriteContainer->PIXI.Container.addChild(debugGraphics)->ignore
 }
 
 let render = (gameObject: t) => {
