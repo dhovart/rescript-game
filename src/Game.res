@@ -48,7 +48,7 @@ let make = () => {
   let renderTexture = RenderTexture.create(~baseRenderTexture=brt, ())
   {
     app,
-    debug: false, // FIXME load from config or env var
+    debug: true, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
     scene: Container.create(),
     state: GameState.make(),
@@ -93,26 +93,26 @@ let renderDebugGraphics = (game) => {
 }
 
 let renderScene = (game) => {
-  let filters = Js.Nullable.return(switch game.state.player.contents {
-    | None => []
-    | Some(player) => {
-      let zoomCenter = getScreenCenter()->Vec2.add(player.entity.velocity->Vec2.multiply(5.))
-      let blurStrength = player.entity.velocity->Vec2.length *. 0.03
-      [ZoomBlurFilter.create(~options=ZoomBlurFilter.createOptions(
-        ~center=Point.create(~x=zoomCenter.x, ~y=zoomCenter.y, ()),
-        ~strength=blurStrength,
-        ()
-      ))]
-    }
-  })
-
   game->getRenderer->PIXI.Renderer.render(
     ~displayObject=game.scene->Obj.magic,
     ~renderTexture=game.renderTexture->Obj.magic,
     (),
   )
 
-  game.mainSprite->DisplayObject.setFilters(filters)->ignore
+  // let filters = Js.Nullable.return(switch game.state.player.contents {
+  //   | None => []
+  //   | Some(player) => {
+  //     let zoomCenter = getScreenCenter()->Vec2.add(player.entity.velocity->Vec2.multiply(20.))
+  //     let blurStrength = player.entity.velocity->Vec2.length *. 0.005
+
+  //     [ZoomBlurFilter.create(~options=ZoomBlurFilter.createOptions(
+  //       ~center=Point.create(~x=zoomCenter.x, ~y=zoomCenter.y, ()),
+  //       ~strength=blurStrength,
+  //       ()
+  //     ))]
+  //   }
+  // })
+  //  game.mainSprite->DisplayObject.setFilters(filters)->ignore
 
   game
 }
@@ -196,7 +196,7 @@ let appendObject = (game, gameObject: GameObject.t) => {
   game->setState(
     game.state->GameState.setObjects(game.state.objects->concat([gameObject]))
   )
-  // ->appendGameObjectDebugSprite(gameObject)
+  ->appendGameObjectDebugSprite(gameObject)
 }
 
 let appendObjects = (game, gameObjects) => {

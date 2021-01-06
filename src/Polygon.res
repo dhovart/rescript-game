@@ -1,6 +1,7 @@
 type t = {
   points: array<float>,
   bbox: BBox.t,
+  center: Vec2.t,
 }
 
 let getBBox = points => {
@@ -15,4 +16,31 @@ let getBBox = points => {
   BBox.make(~topLeft=pos, ~width=size.x, ~height=size.y, ())
 }
 
-let make = points => { points, bbox: getBBox(points) }
+let make = points => {
+  let bbox = getBBox(points)
+  let center = bbox->BBox.getCenter
+  {
+    points,
+    bbox,
+    center
+  }
+}
+
+let getPointsAsVectors = polygon => {
+  Utils.pairs(polygon.points)->Belt.Array.keepMap(pair => switch pair {
+  | [x, y] => Some(Vec2.make(x, y))
+  | _ => None
+  })
+}
+
+let getNormals = polygon => {
+  let segments = Utils.pairs(polygon->getPointsAsVectors)
+  segments->Belt.Array.keepMap(pair => switch pair {
+    | [pointA, pointB] => Some(Segment.make(pointA, pointB)->Segment.getNormal(~clockwise=true, ()))
+    | _ => None
+  })
+}
+
+let collide = (polygon, other) => {
+  let polygonNormals = polygon->getNormals
+}
