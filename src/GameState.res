@@ -25,10 +25,6 @@ let setPlayer = (state, player) => {
 }
 
 let updateCamera = (state, time, screenSize) => {
-
-  let shakeCamera = false
-  let shakeFactor = Js.Math.sin(time->Belt.Int.toFloat *. 1000.) *. 0.09
-
   // FIXME move me
   state->setCamera(state.camera
     ->Camera.setTranslation(screenSize->Vec2.divide(2.))
@@ -36,19 +32,18 @@ let updateCamera = (state, time, screenSize) => {
       | Some(player) => player.entity.position
       | None => Vec2.make(0., 0.)
     })
-    ->Camera.setZoom(switch state.player.contents {
-    | Some(player) => {
-        let zoom = Js.Math.min_float(
-        2.5,
-        Js.Math.max_float(0.8, player.entity.velocity->Vec2.length /. player.entity.maxSpeed *. 2.)
-      )
-      let zoom = Utils.lerp(state.zoomRef.contents, zoom, 0.01) 
-      state.zoomRef.contents = zoom
-      zoom
-    }
-    | None => 1.
-    })
-    ->Camera.setRotation(shakeCamera ? shakeFactor : 0.)
+    // ->Camera.setZoom(switch state.player.contents {
+    // | Some(player) => {
+    //     let zoom = Js.Math.min_float(
+    //     2.5,
+    //     Js.Math.max_float(0.8, player.entity.velocity->Vec2.length /. player.entity.maxSpeed *. 2.)
+    //   )
+    //   let zoom = Utils.lerp(state.zoomRef.contents, zoom, 0.01) 
+    //   state.zoomRef.contents = zoom
+    //   zoom
+    // }
+    // | None => 1.
+    // })
   )
 }
 
@@ -65,16 +60,16 @@ let insertObjectsIntoTree = (state) =>
 let updateQuadTree = (state, screenSize) =>
   state->setTree(state->createTree(screenSize)->insertObjectsIntoTree)
 
-let updateGameObjects = (state, input) => {
+let updateGameObjects = (state, input, debugGraphics) => {
   open GameObject
   state->setObjects(state.objects->map(obj => {
-    obj->update(input, state.player, state.tree, state.camera)->render
+    obj->update(input, state.player, state.tree, state.camera, debugGraphics)->render
   }))
 }
 
-let update = (state, time, input, screenSize) => {
+let update = (state, time, input, screenSize, debugGraphics) => {
   state
   ->updateCamera(time, screenSize)
   ->updateQuadTree(screenSize)
-  ->updateGameObjects(input)
+  ->updateGameObjects(input, debugGraphics)
 }

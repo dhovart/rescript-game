@@ -11,6 +11,7 @@ let length = vec => Js.Math.sqrt(vec.x *. vec.x +. vec.y *. vec.y)
 let normalize = vec => vec->divide(length(vec))
 let dot = (vec1, vec2) => vec1.x *. vec2.x +. vec1.y *. vec2.y
 let lerp = (vec1, vec2, percent) => vec1->zipWith(vec2, (start, end) => Utils.lerp(start, end, percent))
+let isParallelTo = (vec1, vec2) => vec1.x /. vec2.x === vec1.y /. vec2.y
 let transform = (vec: t, ~translation=make(0., 0.), ~scale=1., ~rotation=0., ()) => {
   open PIXI
   let mat = Matrix.create(~a=vec.x +. translation.x, ~b=vec.y +. translation.y, ())

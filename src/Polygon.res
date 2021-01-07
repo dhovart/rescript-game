@@ -1,4 +1,5 @@
 type t = {
+  /* A polugon is just a closed shape defined by a polyline */
   points: Polyline.t,
   bbox: BBox.t,
   center: Vec2.t,
@@ -15,12 +16,6 @@ let make = points => {
     center,
     normals
   }
-}
-
-let collide = (polygon, other) => {
-  // let polygonNormals = polygon->Polyline.getNormals
-  // let otherNormals = other->Polyline.getNormals
-  false
 }
 
 let drawShape = (polygon, graphics: PIXI.Graphics.t) => {

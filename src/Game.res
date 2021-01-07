@@ -6,7 +6,7 @@ type t = {
   app: Application.t,
   debug: bool,
   mutable state: GameState.t,
-  mutable debugGraphics: Graphics.t,
+  debugGraphics: Graphics.t,
   loader: Loader.t,
   /* THe rendered scene */
   scene: Container.t,
@@ -59,10 +59,6 @@ let make = () => {
 }
 
 let getRenderer = game => game.app->Application.getRenderer
-let setDebugGraphics = (game, debugGraphics) => {
-  game.debugGraphics = debugGraphics
-  game
-}
 
 let updateScene = (game) => {
   game.scene->Container.setTransform(
@@ -80,16 +76,14 @@ let updateScene = (game) => {
 
 let renderDebugGraphics = (game) => {
   if game.debug {
-    game->setDebugGraphics(
-      game.state.tree->QuadTree.draw(
-        game.debugGraphics
-        ->Graphics.clear
-        ->Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
-        ->Graphics.moveTo(~x=0., ~y=0.)
-      )
-    )
-    ->ignore
+    game.state.tree->QuadTree.draw(
+      game.debugGraphics
+      ->Graphics.clear
+      ->Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
+      ->Graphics.moveTo(~x=0., ~y=0.)
+    )->ignore
   }
+  game
 }
 
 let renderScene = (game) => {
@@ -123,6 +117,7 @@ let updateState = (game, time, input) => {
       time,
       input,
       getScreenDimensions(),
+      game.debugGraphics
     )
   )
 }
@@ -132,12 +127,12 @@ let update = (game: t, (t, input)) => {
   ->updateState(t, input)
   ->updateScene
   ->renderScene
-  ->renderDebugGraphics
+//  ->renderDebugGraphics
   ->ignore
 }
 
 let start = game => {
-  let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())
+  let ticker = Rx.interval(~period=1000, ~scheduler=Rx.animationFrame, ())
   Rx.combineLatest2(
     ticker |> Rx.Operators.startWith([0]),
     Input.playerDirection |> Rx.Operators.startWith([{

@@ -13,20 +13,21 @@ let poly = Polygon.make([
 ])
 
 let bunny = GameObject.make(
-  "player",
+  1,
   "https://pixijs.io/examples/examples/assets/bunny.png",
   ~controllable=true,
   ~acceleration=0.5,
   ~maxSpeed=10.0,
   ~kind=Entity.Player,
   ~polygon=poly,
+  ~rotation=0.7,
   (),
 )
 
 let worldSize = 1000.
 
-let bunnies = Belt.Array.makeBy(100, i => GameObject.make(
-    j`lapin-$i`,
+let bunnies = Belt.Array.makeBy(1, i => GameObject.make(
+    2 + i,
     "https://pixijs.io/examples/examples/assets/bunny.png",
     ~position=Vec2.make(-.worldSize/.2. +. Js.Math.random() *. worldSize, -.worldSize/.2. +. Js.Math.random() *. worldSize),
     ~acceleration=0.3,
@@ -34,6 +35,7 @@ let bunnies = Belt.Array.makeBy(100, i => GameObject.make(
     ~kind=Entity.Enemy,
     ~velocityFactor=0.4,
     ~polygon=poly,
+    ~rotation=-0.9,
     (),
   )
 )

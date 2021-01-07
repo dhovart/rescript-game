@@ -41,13 +41,12 @@ let createNode = (bbox, quadrant, entity) => {
 
 let rec insert = (tree: t, entity: Entity.t, camera: Camera.t) => {
   let transformedEntityPosition = entity.position
-  ->Vec2.toScreenSpace(~pivot=camera.pivot, ~zoom=camera.zoom, ~rotation=camera.rotation, ())
+    ->Vec2.toScreenSpace(~pivot=camera.pivot, ~zoom=camera.zoom, ~rotation=camera.rotation, ())
   if tree.bbox->BBox.containsPoint(transformedEntityPosition) {
     switch tree.entity {
     | Some(_) =>
       let quadrant = tree.bbox->quadrantFromPoint(transformedEntityPosition)
       let child = getNode(tree, quadrant)
-
       switch child {
       | Some(node) => setNode(tree, quadrant, insert(node, entity, camera))
       | None => setNode(tree, quadrant, createNode(tree.bbox, quadrant, entity))

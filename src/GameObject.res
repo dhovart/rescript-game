@@ -1,4 +1,3 @@
-
 type t = {
   spriteContainer: PIXI.Container.t,
   entity: Entity.t,
@@ -7,7 +6,7 @@ type t = {
 }
 
 let make = (
-  name,
+  id,
   textureUrl,
   ~kind,
   ~position=Vec2.make(0., 0.),
@@ -15,6 +14,7 @@ let make = (
   ~maxSpeed=4.0,
   ~controllable=false,
   ~polygon=?,
+  ~rotation=0.,
   ~rotationFactor=1.,
   ~velocityFactor=1.,
   ()
@@ -42,8 +42,9 @@ let make = (
   }
 
   let entity = Entity.make(
-    ~name,
+    ~id,
     ~position,
+    ~rotation,
     ~accelerationFactor=acceleration,
     ~rotationFactor,
     ~velocityFactor,
@@ -71,6 +72,14 @@ let appendDebugSprite = (gameObject: t) => {
   )
   let debugGraphics = gameObject.entity.polygon->Polygon.draw(debugGraphics->Obj.magic)
   gameObject.spriteContainer->PIXI.Container.addChild(debugGraphics)->ignore
+  let text = PIXI.Text.create(~text=Belt.Int.toString(gameObject.entity.id), ~style=PIXI.TextStyle.create(
+    ~style=PIXI.TextStyle.createStyleOptions(
+      ~fill=0xFFFFFF,
+      ~fontWeight="bold",
+      ()
+    ), ()
+  ), ())
+  gameObject.spriteContainer->PIXI.Container.addChild(text)->ignore
 }
 
 let render = (gameObject: t) => {
@@ -100,21 +109,25 @@ let receiveInput = (gameObject, direction: Input.direction) => {
   }
 }
 
-let updateEntity = (gameObject) => gameObject->setEntity(gameObject.entity->Entity.update)
+let updateEntity = (gameObject, tree, camera, debugGraphics) => {
+//  let neighbours = tree->QuadTree.bboxQuery(gameObject.entity.polygon.bbox, camera, ())->Belt.Array.keep(entity => entity !== gameObject.entity)
+  let neighbours = tree->QuadTree.circleQuery(Circle.make(gameObject.entity.position, 300.), camera, ())->Belt.Array.keep(entity => !(entity->Entity.eq(gameObject.entity)))
+  gameObject->setEntity(gameObject.entity->Entity.update(neighbours, debugGraphics))
+}
 
 let defineBehaviors = (gameObject, playerRef: ref<option<t>>, tree, camera) => {
   gameObject->setBehaviors(switch gameObject.entity.kind {
   | Player => []
-  | Enemy =>
-    [Behavior.SocialDistancing(gameObject.entity, tree, camera, 9.)]
-    ->Belt.Array.concat(
-      switch playerRef.contents {
-      | Some(player) => [
-          Behavior.CowardlySeek(gameObject.entity, player.entity, 7.),
-        ]
-      | None => []
-      }
-    )
+  | Enemy => []
+    // [Behavior.SocialDistancing(gameObject.entity, tree, camera, 9.)]
+    // ->Belt.Array.concat(
+    //   switch playerRef.contents {
+    //   | Some(player) => [
+    //       // Behavior.CowardlySeek(gameObject.entity, player.entity, 7.),
+    //     ]
+    //   | None => []
+    //   }
+    // )
   | _ => []
   })
 }
@@ -134,12 +147,13 @@ let update = (
   playerRef,
   tree,
   camera,
+  debugGraphics
 ) => {
  let object = gameObject
   ->defineBehaviors(playerRef, tree, camera)
   ->applyBehaviors
   ->receiveInput(input)
-  ->updateEntity
+  ->updateEntity(tree, camera, debugGraphics)
 
   // this was supposed to be a pure function, check if we can set the player ref differently
   if gameObject.entity.kind === Entity.Player {
