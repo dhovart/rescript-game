@@ -41,13 +41,12 @@ let createNode = (bbox, quadrant, entity) => {
 
 let rec insert = (tree: t, entity: Entity.t, camera: Camera.t) => {
   let transformedEntityPosition = entity.position
-  ->Vec2.toScreenSpace(~pivot=camera.pivot, ~zoom=camera.zoom, ~rotation=camera.rotation, ())
+    ->Vec2.toScreenSpace(~pivot=camera.pivot, ~zoom=camera.zoom, ~rotation=camera.rotation, ())
   if tree.bbox->BBox.containsPoint(transformedEntityPosition) {
     switch tree.entity {
     | Some(_) =>
       let quadrant = tree.bbox->quadrantFromPoint(transformedEntityPosition)
       let child = getNode(tree, quadrant)
-
       switch child {
       | Some(node) => setNode(tree, quadrant, insert(node, entity, camera))
       | None => setNode(tree, quadrant, createNode(tree.bbox, quadrant, entity))
@@ -85,9 +84,7 @@ let rec query = (tree, ~intersects, ~contains, ~found=[], ()) => {
 let bboxQuery = (tree, bbox, camera) => tree->query(
   ~intersects=tree => bbox->BBox.toScreenSpace(camera)->intersects(tree.bbox),
   ~contains=entity => bbox->BBox.toScreenSpace(camera)->containsPoint(
-    entity->Entity.getBBox()
-    ->BBox.toScreenSpace(camera)
-    ->BBox.getCenter
+    entity.position->Vec2.toScreenSpace(~pivot=camera.pivot, ~zoom=camera.zoom, ~rotation=camera.rotation, ())
   )
 )
 
@@ -96,9 +93,7 @@ let circleQuery = (tree, circle, camera) => {
   tree->query(
     ~intersects=tree => tree.bbox->intersectsCircle(transformedCircle),
     ~contains=entity => transformedCircle->Circle.containsPoint(
-      entity->Entity.getBBox()
-      ->BBox.toScreenSpace(camera)
-      ->BBox.getCenter
+    entity.position->Vec2.toScreenSpace(~pivot=camera.pivot, ~zoom=camera.zoom, ~rotation=camera.rotation, ())
   ))
 }
 

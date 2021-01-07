@@ -98,9 +98,9 @@ let pointsToBBox = (points: array<Vec2.t>) => {
   }
 }
 
-let getRotatedBBoxBBox = (bbox, rotation) => {
+let getRotatedBBoxBBox = (bbox, rotation, scale) => {
   bbox->getPoints
-  ->Belt.Array.map(point => point->Vec2.transform(~rotation, ()))
+  ->Belt.Array.map(point => point->Vec2.transform(~rotation, ~scale, ()))
   ->pointsToBBox
 }
 
@@ -120,4 +120,14 @@ let toScreenSpace = (bbox, camera: Camera.t) => {
       ()
   ))
   ->pointsToBBox
+}
+
+let debugDraw = (bbox, debugGraphics) => {
+  open PIXI.Graphics
+  debugGraphics->lineStyle(~color=0xFFFF00, ~width=1., ())->moveTo(~x=bbox.topLeft.x, ~y=bbox.topLeft.y)
+  ->lineTo(~x=bbox.topLeft.x +. bbox.width, ~y=bbox.topLeft.y)
+  ->lineTo(~x=bbox.topLeft.x +. bbox.width, ~y=bbox.topLeft.y +. bbox.height)
+  ->lineTo(~x=bbox.topLeft.x, ~y=bbox.topLeft.y +. bbox.height)
+  ->lineTo(~x=bbox.topLeft.x, ~y=bbox.topLeft.y)
+  ->ignore
 }

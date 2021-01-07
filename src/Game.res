@@ -6,7 +6,7 @@ type t = {
   app: Application.t,
   debug: bool,
   mutable state: GameState.t,
-  mutable debugGraphics: Graphics.t,
+  debugGraphics: Graphics.t,
   loader: Loader.t,
   /* THe rendered scene */
   scene: Container.t,
@@ -48,7 +48,7 @@ let make = () => {
   let renderTexture = RenderTexture.create(~baseRenderTexture=brt, ())
   {
     app,
-    debug: false, // FIXME load from config or env var
+    debug: true, // FIXME load from config or env var
     debugGraphics: Graphics.create(),
     scene: Container.create(),
     state: GameState.make(),
@@ -59,10 +59,6 @@ let make = () => {
 }
 
 let getRenderer = game => game.app->Application.getRenderer
-let setDebugGraphics = (game, debugGraphics) => {
-  game.debugGraphics = debugGraphics
-  game
-}
 
 let updateScene = (game) => {
   game.scene->Container.setTransform(
@@ -78,41 +74,43 @@ let updateScene = (game) => {
   game
 }
 
+let clearDebugGraphics = (game) => {
+  game.debugGraphics->Graphics.clear->ignore
+  game
+}
+
 let renderDebugGraphics = (game) => {
   if game.debug {
-    game->setDebugGraphics(
-      game.state.tree->QuadTree.draw(
-        game.debugGraphics
-        ->Graphics.clear
-        ->Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
-        ->Graphics.moveTo(~x=0., ~y=0.)
-      )
-    )
-    ->ignore
+    game.state.tree->QuadTree.draw(
+      game.debugGraphics
+      ->Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
+      ->Graphics.moveTo(~x=0., ~y=0.)
+    )->ignore
   }
+  game
 }
 
 let renderScene = (game) => {
-  let filters = Js.Nullable.return(switch game.state.player.contents {
-    | None => []
-    | Some(player) => {
-      let zoomCenter = getScreenCenter()->Vec2.add(player.entity.velocity->Vec2.multiply(5.))
-      let blurStrength = player.entity.velocity->Vec2.length *. 0.03
-      [ZoomBlurFilter.create(~options=ZoomBlurFilter.createOptions(
-        ~center=Point.create(~x=zoomCenter.x, ~y=zoomCenter.y, ()),
-        ~strength=blurStrength,
-        ()
-      ))]
-    }
-  })
-
   game->getRenderer->PIXI.Renderer.render(
     ~displayObject=game.scene->Obj.magic,
     ~renderTexture=game.renderTexture->Obj.magic,
     (),
   )
 
-  game.mainSprite->DisplayObject.setFilters(filters)->ignore
+  // let filters = Js.Nullable.return(switch game.state.player.contents {
+  //   | None => []
+  //   | Some(player) => {
+  //     let zoomCenter = getScreenCenter()->Vec2.add(player.entity.velocity->Vec2.multiply(20.))
+  //     let blurStrength = player.entity.velocity->Vec2.length *. 0.005
+
+  //     [ZoomBlurFilter.create(~options=ZoomBlurFilter.createOptions(
+  //       ~center=Point.create(~x=zoomCenter.x, ~y=zoomCenter.y, ()),
+  //       ~strength=blurStrength,
+  //       ()
+  //     ))]
+  //   }
+  // })
+  //  game.mainSprite->DisplayObject.setFilters(filters)->ignore
 
   game
 }
@@ -123,12 +121,14 @@ let updateState = (game, time, input) => {
       time,
       input,
       getScreenDimensions(),
+      game.debugGraphics
     )
   )
 }
 
 let update = (game: t, (t, input)) => {
   game
+  ->clearDebugGraphics
   ->updateState(t, input)
   ->updateScene
   ->renderScene
@@ -186,7 +186,7 @@ let init = game => {
 // FIXME move me
 let appendGameObjectDebugSprite = (game, gameObject) => {
   if game.debug {
-    gameObject->GameObject.appendDebugSprite(game->getRenderer)
+    gameObject->GameObject.appendDebugSprite
   }
   game
 }
@@ -196,7 +196,7 @@ let appendObject = (game, gameObject: GameObject.t) => {
   game->setState(
     game.state->GameState.setObjects(game.state.objects->concat([gameObject]))
   )
-  // ->appendGameObjectDebugSprite(gameObject)
+  ->appendGameObjectDebugSprite(gameObject)
 }
 
 let appendObjects = (game, gameObjects) => {
