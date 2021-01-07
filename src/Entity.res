@@ -147,7 +147,6 @@ let update = (entity, neighbours, debugGraphics) => {
     let collisionInfo = entity->getCollisionInfo(neighbour, debugGraphics)
     switch collisionInfo {
     | Some(CollisionInfo(axis, overlap)) => {
-      Js.log(("collision!", axis, overlap))
       displacement->Vec2.add(axis->Vec2.multiply(overlap *. -1.))
     }
     | None => displacement
@@ -159,7 +158,7 @@ let update = (entity, neighbours, debugGraphics) => {
   let velocity = entity.velocity->Vec2.lerp(desiredVelocity, entity.velocityFactor)
   let desiredRotation = Js.Math._PI /. 2. +. Js.Math.atan2(~y=velocity.y, ~x=velocity.x, ())
   let rotation = desiredRotation
-  let position = Vec2.lerp(entity.position, entity.position->Vec2.add(displacement), 0.8)
+  let position = Vec2.lerp(entity.position, entity.position->Vec2.add(displacement), 0.3)
   let position = position->Vec2.add(velocity)
   {
     ...entity,
