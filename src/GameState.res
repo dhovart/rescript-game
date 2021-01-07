@@ -44,6 +44,7 @@ let updateCamera = (state, time, screenSize) => {
     }
     | None => 1.
     })
+    ->Camera.setRotation(Js.Math.sin(Belt.Int.toFloat(time) /. 100.))
   )
 }
 

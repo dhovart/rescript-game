@@ -93,7 +93,7 @@ let render = (gameObject: t) => {
   gameObject
 }
 
-let receiveInput = (gameObject, direction: Input.direction) => {
+let receiveInput = (gameObject, direction: Input.direction, camera: Camera.t) => {
   if !gameObject.controllable {
     gameObject
   } else {
@@ -108,7 +108,7 @@ let receiveInput = (gameObject, direction: Input.direction) => {
       | Some(RIGHT) => Vec2.make(1., 0.)
       | _ => {x: 0., y: 0.}
       },
-    )
+    )->Vec2.transform(~rotation=-.camera.rotation, ())
     gameObject->setEntity(
       entity->Entity.setAcceleration(acceleration->Vec2.multiply(entity.accelerationFactor)),
     )
@@ -130,14 +130,14 @@ let defineBehaviors = (gameObject, playerRef: ref<option<t>>, tree, camera) => {
     | Player => []
     | Enemy =>
     [Behavior.SocialDistancing(gameObject.entity, tree, camera, 15.)]
-    ->Belt.Array.concat(
-      switch playerRef.contents {
-      | Some(player) => [
-          Behavior.CowardlySeek(gameObject.entity, player.entity, 7.),
-        ]
-      | None => []
-      }
-    )
+    // ->Belt.Array.concat(
+    //   switch playerRef.contents {
+    //   | Some(player) => [
+    //       Behavior.CowardlySeek(gameObject.entity, player.entity, 7.),
+    //     ]
+    //   | None => []
+    //   }
+    // )
     | _ => []
     },
   )
@@ -159,7 +159,7 @@ let update = (gameObject, input, playerRef, tree, camera, debugGraphics) => {
     gameObject
     ->defineBehaviors(playerRef, tree, camera)
     ->applyBehaviors
-    ->receiveInput(input)
+    ->receiveInput(input, camera)
     ->updateEntity(tree, camera, debugGraphics)
 
   // this was supposed to be a pure function, check if we can set the player ref differently

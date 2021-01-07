@@ -37,7 +37,7 @@ let bunny = GameObject.make(
 
 let groupSize = 600.
 
-let bunnies = Belt.Array.makeBy(30, i => GameObject.make(
+let bunnies = Belt.Array.makeBy(100, i => GameObject.make(
     i + 1,
     "https://pixijs.io/examples/examples/assets/bunny.png",
     ~position=Vec2.make(-.groupSize/.2. +. Js.Math.random() *. groupSize, -.groupSize/.2. +. Js.Math.random() *. groupSize),
