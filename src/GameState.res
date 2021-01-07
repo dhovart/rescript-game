@@ -32,18 +32,18 @@ let updateCamera = (state, time, screenSize) => {
       | Some(player) => player.entity.position
       | None => Vec2.make(0., 0.)
     })
-    // ->Camera.setZoom(switch state.player.contents {
-    // | Some(player) => {
-    //     let zoom = Js.Math.min_float(
-    //     2.5,
-    //     Js.Math.max_float(0.8, player.entity.velocity->Vec2.length /. player.entity.maxSpeed *. 2.)
-    //   )
-    //   let zoom = Utils.lerp(state.zoomRef.contents, zoom, 0.01) 
-    //   state.zoomRef.contents = zoom
-    //   zoom
-    // }
-    // | None => 1.
-    // })
+    ->Camera.setZoom(switch state.player.contents {
+    | Some(player) => {
+        let zoom = Js.Math.min_float(
+        1.3,
+        Js.Math.max_float(0.8, player.entity.velocity->Vec2.length /. player.entity.maxSpeed *. 2.)
+      )
+      let zoom = Utils.lerp(state.zoomRef.contents, zoom, 0.01) 
+      state.zoomRef.contents = zoom
+      zoom
+    }
+    | None => 1.
+    })
   )
 }
 

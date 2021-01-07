@@ -18,7 +18,7 @@ let transform = (vec: t, ~translation=make(0., 0.), ~scale=1., ~rotation=0., ())
   ->Matrix.scale(~x=scale, ~y=scale)
   ->Matrix.rotate(~angle=rotation)
   make(mat->Matrix.getA, mat->Matrix.getB)
-  }
+}
 let limit = (vec, maxLength) => {
   if (vec->length > maxLength) {
     vec->normalize->multiply(maxLength)

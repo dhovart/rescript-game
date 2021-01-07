@@ -74,11 +74,15 @@ let updateScene = (game) => {
   game
 }
 
+let clearDebugGraphics = (game) => {
+  game.debugGraphics->Graphics.clear->ignore
+  game
+}
+
 let renderDebugGraphics = (game) => {
   if game.debug {
     game.state.tree->QuadTree.draw(
       game.debugGraphics
-      ->Graphics.clear
       ->Graphics.lineStyle(~color=0xFF0000, ~width=1., ())
       ->Graphics.moveTo(~x=0., ~y=0.)
     )->ignore
@@ -124,15 +128,16 @@ let updateState = (game, time, input) => {
 
 let update = (game: t, (t, input)) => {
   game
+  ->clearDebugGraphics
   ->updateState(t, input)
   ->updateScene
   ->renderScene
-//  ->renderDebugGraphics
+  ->renderDebugGraphics
   ->ignore
 }
 
 let start = game => {
-  let ticker = Rx.interval(~period=1000, ~scheduler=Rx.animationFrame, ())
+  let ticker = Rx.interval(~period=0, ~scheduler=Rx.animationFrame, ())
   Rx.combineLatest2(
     ticker |> Rx.Operators.startWith([0]),
     Input.playerDirection |> Rx.Operators.startWith([{

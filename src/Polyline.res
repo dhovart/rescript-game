@@ -62,24 +62,5 @@ let getSegments = points => {
 }
 
 let getNormals = points => {
-  points->getSegments->Belt.Array.map(Segment.getNormal(_, ~clockwise=true, ()))
-}
-
-let getProjectedMinMax = (points, axis, translation, rotation, debugGraphics) => {
-    open Belt.Array
-    let points = points
-    ->getPointsAsVec2
-    ->map(vec => vec
-      ->Vec2.transform(~rotation, ())
-      ->Vec2.add(translation)
-    )
-
-    open PIXI.Graphics
-//    debugGraphics->fillStyle(~color=0x000000, ~width=2., ())->ignore
-    points->forEach(point => {
-      debugGraphics->drawCircle(~x=point.x, ~y=point.y, ~radius=3.)->ignore
-    })
-
-    let projectedPoints = points->map(Vec2.dot(axis->Vec2.normalize))
-    (projectedPoints->Utils.findMin, projectedPoints->Utils.findMax)
+  points->getSegments->Belt.Array.map(s => s->Segment.getNormal(~clockwise=true, ())->Vec2.normalize)
 }
