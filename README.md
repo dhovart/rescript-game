@@ -1,16 +1,27 @@
-A small game to try out ReScript, built with RxJS & Pixi.
-Super early stage
+A small game made with ReScript. Super early stage
 
-My QuadTree implementation is adapted from this (nice!) intro to ReasonML: https://blog.dubenko.dev/reasonml-by-example/ 
+## Refactoring
 
-TODO :
+Get rid of GameObject.
+Create a map of sprites with the entities id as keys
+Collision detection functions should be at the shape level, not at the entity level
 
-- [x] create a Camera (& define how it should work)
-- [x] check collisions using SAT
-- [ ] attach behaviors to game objects
+## Features
 
-    - [x] basic logic
-    - [ ] construct more complex behaviors
+Enable creating an entity shape by assembling shapes instead of a single polygon
 
-- [x] refine less than optimal controls
-- [ ] graphics
+### Define actual gameplay
+
+Based on free exploration
+Creatures are peaceful, only fight back if agressed
+Explore "travelling into the past" by storing game state each X frame in a linked list and interpolating between states
+
+## Define a graphic system
+
+Limited palette
+Simple geometric shapes
+Animated seamless patterns using frag shaders
+
+## Define creature motion
+
+Go for something organic
