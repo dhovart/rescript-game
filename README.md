@@ -5,6 +5,7 @@ A small game made with ReScript. Super early stage
 - Get rid of GameObject.
 - Create a map of sprites with the entities id as keys
 - Collision detection functions should be at the shape level, not at the entity level
+- Framerate independent updates
 
 ## Features
 
