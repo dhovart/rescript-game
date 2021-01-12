@@ -1,5 +1,11 @@
 A small game made with ReScript. Super early stage
 
+TODO
+
+## Fixes
+
+- less naive collision avoidance behavior
+
 ## Refactoring
 
 - Get rid of GameObject.
