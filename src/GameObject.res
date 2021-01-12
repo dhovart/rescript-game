@@ -129,15 +129,18 @@ let defineBehaviors = (gameObject, playerRef: ref<option<t>>, tree, camera) => {
     switch gameObject.entity.kind {
     | Player => []
     | Enemy =>
-    [Behavior.SocialDistancing(gameObject.entity, tree, camera, 15.)]
-    // ->Belt.Array.concat(
-    //   switch playerRef.contents {
-    //   | Some(player) => [
-    //       Behavior.CowardlySeek(gameObject.entity, player.entity, 7.),
-    //     ]
-    //   | None => []
-    //   }
-    // )
+      [
+        Behavior.SocialDistancing(gameObject.entity, tree, camera, 15.),
+        Behavior.CollisionAvoidance(gameObject.entity, tree, camera, 15.)
+      ]
+    ->Belt.Array.concat(
+      switch playerRef.contents {
+      | Some(player) => [
+          Behavior.CowardlySeek(gameObject.entity, player.entity, 7.),
+        ]
+      | None => []
+      }
+    )
     | _ => []
     },
   )

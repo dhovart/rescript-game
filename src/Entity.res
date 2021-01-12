@@ -161,6 +161,8 @@ let update = (entity, neighbours, debugGraphics) => {
     }
   })
 
+//  let acceleration = entity.acceleration->Vec2.add(displacement->Vec2.multiply(0.3))
+
   let desiredVelocity =
     entity.velocity->Vec2.add(entity.acceleration)->Vec2.multiply(0.98)->Vec2.limit(entity.maxSpeed)
   let velocity = entity.velocity->Vec2.lerp(desiredVelocity, entity.velocityFactor)
