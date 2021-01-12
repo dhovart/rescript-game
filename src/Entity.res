@@ -108,8 +108,16 @@ let isCollidingAccordingToEntityNormals = (entity, otherEntity, normals, debugGr
   })
 }
 
+let getBBox = (entity, ~scale=1., ()) => {
+  let bbox = entity.polygon.bbox
+  ->BBox.getRotatedBBoxBBox(entity.rotation, scale)
+  bbox->BBox.setTopLeft(entity.position
+    ->Vec2.substract(Vec2.make(bbox.width/. 2., bbox.height/. 2.)))
+}
+
+
 let getCollisionInfo = (entity, otherEntity, debugGraphics) => {
-  if entity->eq(otherEntity) {
+  if entity->eq(otherEntity) || !(entity->getBBox()->BBox.intersects(otherEntity->getBBox())) {
     None
   } else {
     let collisionResultAccordingToEntityAxis = isCollidingAccordingToEntityNormals(
@@ -167,11 +175,4 @@ let update = (entity, neighbours, debugGraphics) => {
     position,
     acceleration: Vec2.make(0., 0.),
   }
-}
-
-let getBBox = (entity, ~scale=1., ()) => {
-  let bbox = entity.polygon.bbox
-  ->BBox.getRotatedBBoxBBox(entity.rotation, scale)
-  bbox->BBox.setTopLeft(entity.position
-    ->Vec2.substract(Vec2.make(bbox.width/. 2., bbox.height/. 2.)))
 }
