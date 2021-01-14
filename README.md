@@ -1,4 +1,6 @@
-A small game made with ReScript. Super early stage
+This was started as a small game made to try out the ReScript language.
+
+I knew from the start doing a game for the browser would be limiting performance-wise. My plan is to release a small, limited prototype and then continue exploring new ideas by continuing this as a Haskell project.
 
 TODO
 
