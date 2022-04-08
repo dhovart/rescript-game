@@ -1,36 +1,7 @@
-This was started as a small game made to try out the ReScript language.
+An abandoned game project from 2021. More of a game engine prototype than anything else.
 
-I knew from the start doing a game for the browser would be limiting performance-wise. My plan is to release a small, limited prototype and then continue exploring new ideas by continuing this as a Haskell project.
+It let me get more familiar with the (really nice) ReScript language, quadtrees, steering behaviors and collision detection using the Separating Axis "Theorem".
 
-TODO
+It's not performant at all because I decided to do everything in an immutable way (it's dumb but it seemed like a proper approach then, working with a functional language...), creating new objects rather than modifying existing ones and as such giving a lot of work to the garbage collector.
 
-## Fixes
-
-- less naive collision avoidance behavior
-
-## Refactoring
-
-- Get rid of GameObject.
-- Create a map of sprites with the entities id as keys
-- Collision detection functions should be at the shape level, not at the entity level
-- Framerate independent updates
-
-## Features
-
-Enable creating an entity shape by assembling shapes instead of a single polygon
-
-### Define actual gameplay
-
-- Based on free exploration
-- Creatures are peaceful, only fight back if agressed
-- Explore "travelling into the past" by storing game state each X frame in a linked list and interpolating between states
-
-## Define a graphic system
-
-- Limited palette
-- Simple geometric shapes
-- Animated seamless patterns using frag shaders
-
-## Define creature motion
-
-Go for something organic
+[Video](https://www.youtube.com/watch?v=GMCUAwcXoco) on youtube.
