@@ -5,3 +5,11 @@ It let me get more familiar with the (really nice) ReScript language, quadtrees,
 It's not performant at all because I decided to do everything in an immutable way (it's dumb but it seemed like a proper approach then, working with a functional language...), creating new objects rather than modifying existing ones and as such giving a lot of work to the garbage collector.
 
 [Video](https://www.youtube.com/watch?v=GMCUAwcXoco) on youtube.
+
+# Setup instruction
+
+```
+yarn
+yarn build
+yarn start
+```
